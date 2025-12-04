@@ -11,8 +11,10 @@ pygame.display.set_caption("i hate gingers")
 clock = pygame.time.Clock()
 fps = 60
 
-bg_image = pygame.image.load("assets/images/backgrounds/FOREST.png").convert_alpha()
+# Assuming ground level is SCREEN_HEIGHT - 110 (as per Fighter.move())
+GROUND_Y_POS = SCREEN_HEIGHT - 400 - Fighter.RECT_HEIGHT
 
+bg_image = pygame.image.load("assets/images/backgrounds/FOREST.png").convert_alpha()
 
 def draw_bg():
     scale_bg = pygame.transform.scale(bg_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -20,12 +22,12 @@ def draw_bg():
 
 def draw_health_bar(health, x, y):
     ratio = health / 100
-    pygame.draw.rect(screen, (255, 0, 0), (x, y,  300, 30))
+    pygame.draw.rect(screen, (255, 0, 0), (x, y, 300, 30))
     pygame.draw.rect(screen, (0, 255, 0), (x, y, 300 * ratio, 30))
 
 
-fighter_1 = Fighter(200, 310)
-fighter_2 = Fighter(700, 310)
+fighter_1 = Fighter(200, GROUND_Y_POS, 'fantasy_warrior', is_player_2=False)
+fighter_2 = Fighter(800 - Fighter.RECT_WIDTH, GROUND_Y_POS, 'knight', is_player_2=True)
 
 run = True
 while run:
@@ -37,18 +39,29 @@ while run:
             run = False
 
         if event.type == pygame.KEYDOWN:
+            # Player 1 Jump (W)
             if event.key == pygame.K_w:
-                if fighter_1.jump_count < fighter_1.max_jumps:
+                if not fighter_1.attacking and fighter_1.jump_count < fighter_1.max_jumps:
                     fighter_1.vel_y = -30
                     fighter_1.jump_count += 1
+            
+            # Player 2 Jump (UP ARROW)
+            if event.key == pygame.K_UP:
+                if not fighter_2.attacking and fighter_2.jump_count < fighter_2.max_jumps:
+                    fighter_2.vel_y = -30
+                    fighter_2.jump_count += 1
 
     draw_bg()
     draw_health_bar(fighter_1.health, 20, 20)
     draw_health_bar(fighter_2.health, 680, 20)
+    
+    # --- Movement and Drawing ---
     fighter_1.move(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, screen, fighter_2)
+    # NEW: Move fighter 2 (passes fighter 1 as target)
+    fighter_2.move(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, screen, fighter_1) 
+    
     fighter_1.draw(screen, fighter_2)
-
-    fighter_2.draw(screen, fighter_1)  # fighter 2 does nothing yet
+    fighter_2.draw(screen, fighter_1)
 
     pygame.display.update()
 
