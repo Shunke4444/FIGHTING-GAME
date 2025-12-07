@@ -30,12 +30,8 @@ source.exclude_dirs = tests, bin, venv, __pycache__, web, .github, .git, buildoz
 version = 1.0
 
 # (list) Application requirements
-# Using latest pyjnius from git for Python 3.11 compatibility
-requirements = python3,kivy,pillow,pyjnius==1.6.1
-
-# (list) Modules to exclude from the Python stdlib
-# These modules require system libraries not available on Android
-p4a.extra_args = --blacklist-requirements=_lzma,_uuid,grp,spwd,readline
+# Using latest pyjnius from github master for Python 3.11 compatibility (fixes 'long' issue)
+requirements = python3,kivy,pillow,https://github.com/kivy/pyjnius/archive/master.zip
 
 # (str) Custom source folders for requirements
 #requirements.source.kivy = ../../kivy
