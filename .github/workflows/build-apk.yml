@@ -53,6 +53,12 @@ jobs:
       run: |
         yes | sdkmanager --licenses || true
         sdkmanager --install "build-tools;34.0.0" "platforms;android-31" "platform-tools" "ndk;25.2.9519653"
+        # Remove deprecated tools directory and create symlinks to cmdline-tools
+        # This fixes the javax.xml.bind error with Java 17
+        sudo rm -rf $ANDROID_HOME/tools
+        sudo mkdir -p $ANDROID_HOME/tools/bin
+        sudo ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
+        sudo ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager $ANDROID_HOME/tools/bin/avdmanager
         # Verify aidl is installed
         ls -la $ANDROID_HOME/build-tools/34.0.0/
         
@@ -73,7 +79,7 @@ jobs:
         
     - name: Build APK with Buildozer
       run: |
-        export PATH=$ANDROID_HOME/build-tools/34.0.0:$PATH
+        export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/build-tools/34.0.0:$PATH
         buildozer android debug
     
     - name: Upload APK artifact
