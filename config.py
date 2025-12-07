@@ -32,17 +32,17 @@ JUMP_VELOCITY = 30
 
 # Attack damage values
 ATTACK_DAMAGE = {
-    1: 15,  # Light attack
-    2: 20,  # Medium attack
-    3: 35,  # Heavy attack
+    1: 8,   # Light attack
+    2: 12,  # Medium attack
+    3: 18,  # Heavy attack (combo)
 }
 
 # Attack range
 ATTACK_RANGE = 80
 
 # Cooldowns (in frames)
-HIT_COOLDOWN = 30
-ATTACK_COOLDOWN = 20
+HIT_COOLDOWN = 45      # Invincibility after getting hit
+ATTACK_COOLDOWN = 25   # Delay between attacks
 
 # Animation speed (frames per animation frame)
 FRAMES_PER_ANIMATION = 5
@@ -53,10 +53,10 @@ FRAMES_PER_ANIMATION = 5
 
 SPRITE_CONFIG = {
     'fantasy_warrior': {
-        'scale_width': 350,
-        'scale_height': 550,
-        'visual_y_pull': 120,
-        'death_y_adj': 30,
+        'scale_width': 300,
+        'scale_height': 400,
+        'visual_y_pull': 70,
+        'death_y_adj': 20,
         'animations': {
             'Idle': 10,
             'Run': 8,
@@ -69,10 +69,10 @@ SPRITE_CONFIG = {
         }
     },
     'knight': {
-        'scale_width': 350,
-        'scale_height': 420,
-        'visual_y_pull': 0,
-        'death_y_adj': 30,
+        'scale_width': 300,
+        'scale_height': 400,
+        'visual_y_pull': -83,
+        'death_y_adj': 20,
         'animations': {
             'Idle': 10,
             'Run': 10,
