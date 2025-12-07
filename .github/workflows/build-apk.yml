@@ -37,7 +37,15 @@ jobs:
           cmake \
           libffi-dev \
           libssl-dev \
-          lld
+          lld \
+          ccache
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Install Android SDK components
+      run: |
+        sdkmanager --install "build-tools;34.0.0" "platforms;android-34" "platform-tools"
     
     - name: Install Python dependencies
       run: |
