@@ -18,13 +18,13 @@ source.main = main.py
 source.include_exts = py,png,jpg,kv,atlas
 
 # (list) List of inclusions using pattern matching
-source.include_patterns = assets/*,assets/images/*,assets/images/**/*
+source.include_patterns = assets/*,assets/images/*,assets/images/**/*,screens/*,components/*,utils/*
 
 # (list) Source files to exclude (let empty to not exclude anything)
-source.exclude_patterns = main_desktop.py,fighter.py
+#source.exclude_patterns = 
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests, bin, venv, __pycache__, web, .github, .git, buildozer_venv, buildozer_venv2, buildozer_env
+source.exclude_dirs = tests, bin, venv, __pycache__, web, .github, .git, buildozer_venv, buildozer_venv2, buildozer_env, .buildozer
 
 # (str) Application versioning
 version = 1.0
