@@ -57,7 +57,10 @@ android.api = 31
 android.minapi = 21
 
 # (str) Android NDK version to use
-android.ndk = 25b
+android.ndk = 25.2.9519653
+
+# (bool) Accept SDK license automatically
+android.accept_sdk_license = True
 
 # (str) python-for-android branch to use, defaults to master
 #p4a.branch = master

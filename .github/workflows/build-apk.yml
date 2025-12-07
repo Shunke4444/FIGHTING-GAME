@@ -51,8 +51,11 @@ jobs:
     
     - name: Install Android SDK components
       run: |
-        sdkmanager --install "build-tools;34.0.0" "platforms;android-34" "platform-tools"
-    
+        yes | sdkmanager --licenses || true
+        sdkmanager --install "build-tools;34.0.0" "platforms;android-31" "platform-tools" "ndk;25.2.9519653"
+        # Verify aidl is installed
+        ls -la $ANDROID_HOME/build-tools/34.0.0/
+        
     - name: Install Python dependencies
       run: |
         pip install --upgrade pip
@@ -60,11 +63,13 @@ jobs:
     
     - name: Build APK with Buildozer
       run: |
-        # Initialize buildozer if needed
+        export ANDROIDSDK=$ANDROID_HOME
+        export ANDROIDNDK=$ANDROID_HOME/ndk/25.2.9519653
+        export PATH=$ANDROID_HOME/build-tools/34.0.0:$PATH
+        echo "ANDROID_HOME=$ANDROID_HOME"
+        echo "ANDROIDSDK=$ANDROIDSDK"
+        echo "ANDROIDNDK=$ANDROIDNDK"
         buildozer android debug
-      env:
-        # Accept Android SDK licenses automatically
-        ANDROID_SDK_ACCEPT_LICENSE: 'y'
     
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
