@@ -1,1 +1,7 @@
 pygame==2.6.1
+
+# For mobile (APK) build - use main_mobile.py
+kivy>=2.2.0
+buildozer>=1.5.0
+Cython>=0.29.33
+pillow>=9.0.0

@@ -1,0 +1,29 @@
+# Buildozer
+.buildozer/
+bin/
+*.apk
+
+# Virtual environments
+venv/
+buildozer_venv/
+buildozer_venv2/
+buildozer_env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Kivy
+*.kv~
+
+# OS
+.DS_Store
+Thumbs.db
