@@ -11,8 +11,8 @@ package.domain = org.fightinggame
 # (str) Source code where the main.py live
 source.dir = .
 
-# (str) Application entry point
-source.main = main_mobile.py
+# (str) Application entry point (now main.py is the Kivy mobile version)
+source.main = main.py
 
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas
@@ -21,7 +21,7 @@ source.include_exts = py,png,jpg,kv,atlas
 source.include_patterns = assets/*,assets/images/*,assets/images/**/*
 
 # (list) Source files to exclude (let empty to not exclude anything)
-#source.exclude_exts = spec
+source.exclude_patterns = main_desktop.py,fighter.py
 
 # (list) List of directory to exclude (let empty to not exclude anything)
 source.exclude_dirs = tests, bin, venv, __pycache__, web, .github, .git, buildozer_venv, buildozer_venv2, buildozer_env
