@@ -57,10 +57,16 @@ android.api = 31
 android.minapi = 21
 
 # (str) Android NDK version to use
-android.ndk = 25.2.9519653
+android.ndk = 25b
 
 # (bool) Accept SDK license automatically
 android.accept_sdk_license = True
+
+# (str) Android SDK dir (if empty, will be automatically downloaded)
+android.sdk_path = .buildozer/android/platform/android-sdk
+
+# (str) Android NDK dir (if empty, will be automatically downloaded)
+android.ndk_path = .buildozer/android/platform/android-ndk-r25b
 
 # (str) python-for-android branch to use, defaults to master
 #p4a.branch = master
