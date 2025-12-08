@@ -42,7 +42,7 @@ class StartScreen(BaseScreen):
             pos_hint={'center_x': 0.5, 'center_y': 0.65},
             size_hint=(None, None),
             outline_width=2,
-            outline_color=(0.1, 1, 0.3, 1)
+            outline_color=(0.05, 0.5, 0.15, 1)
         )
         self.add_widget(self.title_label)
         
@@ -57,17 +57,15 @@ class StartScreen(BaseScreen):
         )
         self.add_widget(self.start_label)
         
-        # Create Options button with Pixelade font
+        # Create Options button with Options.png image
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        options_img_path = os.path.join(base_path, 'assets/images/ui/Options.png')
+        
         self.options_btn = Button(
-            text='Options',
-            font_size=24,
-            font_name=self.pixelade_font,
-            size_hint=(None, None),
-            size=(150, 50),
+            size_hint=(0.50, 0.60),
             pos_hint={'center_x': 0.5, 'center_y': 0.2},
-            background_color=(0.05, 0.35, 0.1, 0.9),
-            background_normal='',
-            background_down=''
+            background_normal=options_img_path,
+            background_down=options_img_path
         )
         self.options_btn.bind(on_press=self._on_options)
         self.add_widget(self.options_btn)
