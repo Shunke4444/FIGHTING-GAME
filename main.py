@@ -26,6 +26,8 @@ from screens import (
     PauseScreen,
     CharacterSelectScreen,
     DifficultySelectScreen,
+    SettingsScreen,
+    ControlLayoutScreen,
 )
 from config import SCREENS
 
@@ -60,6 +62,8 @@ class FightingGameApp(App):
         self.screens[SCREENS['PAUSE']] = PauseScreen(self)
         self.screens[SCREENS['CHARACTER_SELECT']] = CharacterSelectScreen(self)
         self.screens[SCREENS['DIFFICULTY_SELECT']] = DifficultySelectScreen(self)
+        self.screens[SCREENS['SETTINGS']] = SettingsScreen(self)
+        self.screens[SCREENS['CONTROL_LAYOUT']] = ControlLayoutScreen(self)
     
     def switch_screen(self, screen_name):
         """Switch to a different screen."""

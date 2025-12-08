@@ -4,6 +4,8 @@ Utility functions and helpers for the game.
 
 import os
 
+from utils.settings import SettingsManager
+
 
 def get_base_path():
     """Get the base path of the application."""

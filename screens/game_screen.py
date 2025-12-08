@@ -12,6 +12,7 @@ from kivy.graphics import Rectangle, Color, RoundedRectangle
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.core.image import Image as CoreImage
+from kivy.core.audio import SoundLoader
 from kivy.utils import platform
 
 from screens.base_screen import BaseScreen
@@ -40,7 +41,7 @@ class GameWidget(Widget):
         self.fighter_2 = Fighter(int(self.screen_width - 300 * scale), fighter_start_y, 'knight', is_player_2=True)
         
         # Create bot AI for fighter 2
-        self.bot_ai = BotAI(self.fighter_2, difficulty='medium')
+        self.bot_ai = BotAI(self.fighter_2, difficulty='hard')
         
         # Create health bars (now auto-scaling)
         self.health_bar_1 = HealthBar(is_flipped=False)
@@ -52,20 +53,44 @@ class GameWidget(Widget):
         self.slow_motion_factor = 1.0
         self.winner = None  # 'player' or 'bot'
         
+        # Match timer (40 seconds)
+        self.match_time = 40.0
+        
+        # Countdown state (3, 2, 1, FIGHT!)
+        self.countdown_active = True
+        self.countdown_time = 1.9  # Total countdown duration
+        self.countdown_text = "3"
+        
         # Load background
         self._load_background()
         
         # Keyboard input (for desktop testing only - not on mobile)
         self._keyboard = None
         self.keys_pressed = set()
+        self._setup_keyboard()
+        
+        # Bind to window size
+        Window.bind(size=self.on_window_resize)
+    
+    def _setup_keyboard(self):
+        """Setup keyboard input for desktop."""
         if platform not in ('android', 'ios'):
+            if self._keyboard:
+                self._keyboard.unbind(on_key_down=self._on_key_down)
+                self._keyboard.unbind(on_key_up=self._on_key_up)
             self._keyboard = Window.request_keyboard(self._on_keyboard_closed, self)
             if self._keyboard:
                 self._keyboard.bind(on_key_down=self._on_key_down)
                 self._keyboard.bind(on_key_up=self._on_key_up)
-        
-        # Bind to window size
-        Window.bind(size=self.on_window_resize)
+    
+    def _release_keyboard(self):
+        """Release keyboard input."""
+        if self._keyboard:
+            self._keyboard.unbind(on_key_down=self._on_key_down)
+            self._keyboard.unbind(on_key_up=self._on_key_up)
+            self._keyboard.release()
+            self._keyboard = None
+        self.keys_pressed.clear()
     
     def _get_scale_factor(self):
         """Calculate scale factor based on screen size."""
@@ -107,6 +132,10 @@ class GameWidget(Widget):
         if key == 'w':
             self.fighter_1.do_jump()
         
+        # Player 1 Dodge
+        if key == 'spacebar':
+            self.fighter_1.do_dodge()
+        
         return True
     
     def _on_key_up(self, keyboard, keycode):
@@ -126,6 +155,30 @@ class GameWidget(Widget):
         self.screen_width = Window.width
         self.screen_height = Window.height
         
+        # Handle countdown
+        if self.countdown_active:
+            self.countdown_time -= dt
+            
+            # Determine countdown text based on remaining time
+            # 1.9 -> 1.425: "3", 1.425 -> 0.95: "2", 0.95 -> 0.475: "1", 0.475 -> 0: "FIGHT!"
+            if self.countdown_time > 1.425:
+                self.countdown_text = "3"
+            elif self.countdown_time > 0.95:
+                self.countdown_text = "2"
+            elif self.countdown_time > 0.475:
+                self.countdown_text = "1"
+            elif self.countdown_time > 0:
+                self.countdown_text = "FIGHT!"
+            else:
+                self.countdown_active = False
+                self.countdown_text = ""
+            
+            # During countdown, just draw the game (fighters idle)
+            self.fighter_1.update_animation()
+            self.fighter_2.update_animation()
+            self.draw_game()
+            return
+        
         # Apply slow motion to dt
         effective_dt = dt * self.slow_motion_factor
         
@@ -137,6 +190,10 @@ class GameWidget(Widget):
             if self.slow_motion_factor > 0.2:
                 self.slow_motion_factor -= dt * 0.8  # Slow down over ~1 second
                 self.slow_motion_factor = max(0.2, self.slow_motion_factor)
+            
+            # Continue applying gravity so fighters land on the ground
+            self.fighter_1.move(self.screen_width, self.screen_height, self.fighter_2)
+            self.fighter_2.move(self.screen_width, self.screen_height, self.fighter_1)
             
             # Update animations in slow motion
             self.fighter_1.update_animation(self.slow_motion_factor)
@@ -153,8 +210,9 @@ class GameWidget(Widget):
             self.fighter_1.move_right = True
         
         # Handle keyboard attacks for Player 1
-        if 'j' in self.keys_pressed and 'k' in self.keys_pressed:
-            self.fighter_1.do_attack(3)
+        # K (Attack 2) while moving triggers Attack 3
+        if 'k' in self.keys_pressed and ('a' in self.keys_pressed or 'd' in self.keys_pressed):
+            self.fighter_1.do_attack(3)  # Directional combo attack!
         elif 'j' in self.keys_pressed:
             self.fighter_1.do_attack(1)
         elif 'k' in self.keys_pressed:
@@ -174,6 +232,19 @@ class GameWidget(Widget):
         # Check attacks
         self.fighter_1.check_attack_hit(self.fighter_2)
         self.fighter_2.check_attack_hit(self.fighter_1)
+        
+        # Update match timer
+        self.match_time -= dt
+        if self.match_time <= 0:
+            self.match_time = 0
+            # Determine winner by health
+            if self.fighter_1.health > self.fighter_2.health:
+                self._trigger_game_over('player')
+            elif self.fighter_2.health > self.fighter_1.health:
+                self._trigger_game_over('bot')
+            else:
+                # Tie - bot wins by default
+                self._trigger_game_over('bot')
         
         # Check for game over
         if not self.fighter_1.alive and not self.game_over:
@@ -204,6 +275,47 @@ class GameWidget(Widget):
         # Draw fighters
         self._draw_fighter(self.fighter_1)
         self._draw_fighter(self.fighter_2)
+        
+        # Draw countdown text if active
+        if self.countdown_active and self.countdown_text:
+            self._draw_countdown()
+    
+    def _draw_countdown(self):
+        """Draw the countdown text in the center of the screen."""
+        from kivy.core.text import Label as CoreLabel
+        
+        # Create label with large font
+        font_size = 120 if self.countdown_text != "FIGHT!" else 100
+        label = CoreLabel(
+            text=self.countdown_text,
+            font_size=font_size,
+            bold=True
+        )
+        label.refresh()
+        
+        # Get texture from label
+        texture = label.texture
+        
+        # Calculate center position
+        center_x = self.screen_width // 2 - texture.width // 2
+        center_y = self.screen_height // 2 - texture.height // 2
+        
+        with self.canvas:
+            # Draw semi-transparent background for better visibility
+            Color(0, 0, 0, 0.5)
+            RoundedRectangle(
+                pos=(center_x - 20, center_y - 10),
+                size=(texture.width + 40, texture.height + 20),
+                radius=[15]
+            )
+            
+            # Draw text with color based on countdown
+            if self.countdown_text == "FIGHT!":
+                Color(1, 0.3, 0.3, 1)  # Red for FIGHT
+            else:
+                Color(1, 1, 1, 1)  # White for numbers
+            
+            Rectangle(texture=texture, pos=(center_x, center_y), size=texture.size)
     
     def _draw_fighter(self, fighter):
         """Draw a fighter."""
@@ -267,6 +379,14 @@ class GameWidget(Widget):
         self.game_over_timer = 0
         self.slow_motion_factor = 1.0
         self.winner = None
+        
+        # Reset match timer
+        self.match_time = 40.0
+        
+        # Reset countdown
+        self.countdown_active = True
+        self.countdown_time = 1.9
+        self.countdown_text = "3"
 
 
 class GameScreen(BaseScreen):
@@ -274,6 +394,14 @@ class GameScreen(BaseScreen):
     
     def __init__(self, app, **kwargs):
         super().__init__(app, **kwargs)
+        
+        # Get settings for audio
+        from utils.settings import SettingsManager
+        self.settings = SettingsManager.get_instance()
+        
+        # Load background music
+        self.bg_music = None
+        self._load_background_music()
         
         # Create game widget
         self.game_widget = GameWidget(size_hint=(1, 1))
@@ -283,12 +411,26 @@ class GameScreen(BaseScreen):
         self.touch_controls = TouchControls(self.game_widget)
         self.touch_controls.create_controls(self)
         
-        # Create pause button
+        # Create timer label at top center
+        self.timer_label = Label(
+            text='60',
+            size_hint=(None, None),
+            size=(80, 50),
+            pos=(Window.width // 2 - 40, Window.height - 50),
+            font_size=36,
+            bold=True,
+            color=(1, 1, 1, 1),
+            outline_color=(0, 0, 0, 1),
+            outline_width=2
+        )
+        self.add_widget(self.timer_label)
+        
+        # Create pause button below timer
         self.pause_btn = Button(
             text='||',
             size_hint=(None, None),
             size=(60, 60),
-            pos=(Window.width // 2 - 30, Window.height - 70),
+            pos=(Window.width // 2 - 30, Window.height - 105),
             background_color=(0.5, 0.5, 0.5, 0.7),
             font_size=28
         )
@@ -300,23 +442,71 @@ class GameScreen(BaseScreen):
         
         # Game loop event
         self.game_event = None
+        
+        # Music fade state
+        self.music_fading = False
+        self.music_fade_duration = 2.0  # Fade over 2 seconds
+        self.music_fade_timer = 0.0
+        self.music_original_volume = self.settings.get_music_volume()
     
     def on_enter(self):
         """Start the game loop when entering."""
+        # Refresh touch controls to apply any settings changes
+        self.touch_controls.reposition_controls()
+        # Re-setup keyboard input
+        self.game_widget._setup_keyboard()
         self.game_event = Clock.schedule_interval(self.update, 1.0 / FPS)
+        # Apply saved audio settings
+        sfx_volume = self.settings.get_sfx_volume()
+        self.apply_sfx_volume(sfx_volume)
+        # Start background music
+        self.play_music()
     
     def on_leave(self):
         """Stop the game loop when leaving."""
         if self.game_event:
             self.game_event.cancel()
             self.game_event = None
+        # Release keyboard when leaving
+        self.game_widget._release_keyboard()
     
     def update(self, dt):
         """Update the game."""
         self.game_widget.update(dt)
         
+        # Start music fade when game over begins
+        if self.game_widget.game_over and not self.music_fading and self.bg_music:
+            self.music_fading = True
+            self.music_fade_timer = 0.0
+        
+        # Handle music fade out
+        if self.music_fading and self.bg_music:
+            self.music_fade_timer += dt
+            fade_progress = min(self.music_fade_timer / self.music_fade_duration, 1.0)
+            self.bg_music.volume = self.music_original_volume * (1.0 - fade_progress)
+            
+            # Stop music completely when fade is done
+            if fade_progress >= 1.0:
+                self.bg_music.stop()
+                self.music_fading = False
+        
+        # Update timer and pause button positions for dynamic scaling
+        self.timer_label.pos = (Window.width // 2 - 40, Window.height - 50)
+        self.pause_btn.pos = (Window.width // 2 - 30, Window.height - 105)
+        
+        # Update timer display (just seconds)
+        match_time = self.game_widget.match_time
+        seconds = int(match_time)
+        self.timer_label.text = str(seconds)
+        
+        # Change timer color when low
+        if match_time <= 10:
+            self.timer_label.color = (1, 0.2, 0.2, 1)  # Red when low
+        else:
+            self.timer_label.color = (1, 1, 1, 1)
+        
         # Check if we need to show game over popup
-        if self.game_widget.game_over and self.game_widget.game_over_timer > 1.5 and self.game_over_popup is None:
+        if self.game_widget.game_over and self.game_widget.game_over_timer > 3.0 and self.game_over_popup is None:
             self._show_game_over_popup()
     
     def _show_game_over_popup(self):
@@ -396,6 +586,7 @@ class GameScreen(BaseScreen):
         """Handle menu button press."""
         self._hide_game_over_popup()
         self.reset_game()
+        self.stop_music()
         self.app.switch_screen(SCREENS['START'])
     
     def _hide_game_over_popup(self):
@@ -406,7 +597,61 @@ class GameScreen(BaseScreen):
     
     def on_pause(self, instance):
         """Handle pause button press."""
+        self.pause_music()
         self.app.switch_screen(SCREENS['PAUSE'])
+    
+    def _load_background_music(self):
+        """Load the background music."""
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        music_path = os.path.join(base_path, 'assets', 'images', 'sound effects', 
+                                   'background music', 'Limbus Company - Middle Finger Toujou.mp3')
+        if os.path.exists(music_path):
+            self.bg_music = SoundLoader.load(music_path)
+            if self.bg_music:
+                self.bg_music.loop = True
+                # Use saved volume setting
+                volume = self.settings.get_music_volume()
+                self.bg_music.volume = volume
+                self.music_original_volume = volume
+    
+    def play_music(self):
+        """Start playing background music."""
+        if self.bg_music and self.bg_music.state != 'play':
+            # Ensure volume is set from settings
+            volume = self.settings.get_music_volume()
+            self.bg_music.volume = volume
+            self.music_original_volume = volume
+            self.bg_music.play()
+    
+    def pause_music(self):
+        """Pause background music."""
+        if self.bg_music and self.bg_music.state == 'play':
+            self.bg_music.stop()
+    
+    def stop_music(self):
+        """Stop background music completely."""
+        if self.bg_music:
+            self.bg_music.stop()
+    
+    def apply_sfx_volume(self, volume):
+        """Apply SFX volume to all fighter sounds."""
+        # Apply to fighter 1
+        fighter1 = self.game_widget.fighter_1
+        for sound in fighter1.sounds.values():
+            if sound:
+                sound.volume = volume
+        for sound in fighter1.footstep_sounds:
+            if sound:
+                sound.volume = volume
+        
+        # Apply to fighter 2
+        fighter2 = self.game_widget.fighter_2
+        for sound in fighter2.sounds.values():
+            if sound:
+                sound.volume = volume
+        for sound in fighter2.footstep_sounds:
+            if sound:
+                sound.volume = volume
     
     def on_window_resize(self, window, size):
         """Handle window resize."""
@@ -416,3 +661,16 @@ class GameScreen(BaseScreen):
         """Reset the game."""
         self._hide_game_over_popup()
         self.game_widget.reset_game()
+        
+        # Reset music fade state and restart music
+        self.music_fading = False
+        self.music_fade_timer = 0.0
+        if self.bg_music:
+            self.bg_music.volume = self.music_original_volume
+            self.play_music()
+    
+    def set_difficulty(self, difficulty):
+        """Set the bot difficulty."""
+        self.game_widget.bot_ai.difficulty = difficulty
+        self.game_widget.bot_ai._setup_difficulty()
+        self.game_widget.bot_ai.decision_interval = self.game_widget.bot_ai._get_decision_interval()

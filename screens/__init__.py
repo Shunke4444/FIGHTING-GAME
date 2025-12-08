@@ -9,6 +9,8 @@ from screens.game_screen import GameScreen
 from screens.pause_screen import PauseScreen
 from screens.character_select import CharacterSelectScreen
 from screens.difficulty_select import DifficultySelectScreen
+from screens.settings_screen import SettingsScreen
+from screens.control_layout_screen import ControlLayoutScreen
 
 __all__ = [
     'BaseScreen',
@@ -17,4 +19,6 @@ __all__ = [
     'PauseScreen',
     'CharacterSelectScreen',
     'DifficultySelectScreen',
+    'SettingsScreen',
+    'ControlLayoutScreen',
 ]

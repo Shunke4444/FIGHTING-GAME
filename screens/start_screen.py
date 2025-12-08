@@ -6,6 +6,7 @@ Tap anywhere to start the game
 
 import os
 from kivy.uix.label import Label
+from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.graphics import Rectangle, Color
 from kivy.core.image import Image as CoreImage
@@ -26,11 +27,11 @@ class StartScreen(BaseScreen):
         
         # Create title label
         self.title_label = Label(
-            text='FIGHTING GAME',
+            text='FOREST FIGHTER 2',
             font_size=64,
             bold=True,
             color=(1, 1, 1, 1),
-            pos_hint={'center_x': 0.5, 'center_y': 0.6},
+            pos_hint={'center_x': 0.5, 'center_y': 0.65},
             size_hint=(None, None)
         )
         self.add_widget(self.title_label)
@@ -40,10 +41,22 @@ class StartScreen(BaseScreen):
             text='Tap anywhere to start',
             font_size=32,
             color=(1, 1, 1, 0.8),
-            pos_hint={'center_x': 0.5, 'center_y': 0.3},
+            pos_hint={'center_x': 0.5, 'center_y': 0.4},
             size_hint=(None, None)
         )
         self.add_widget(self.start_label)
+        
+        # Create Options button
+        self.options_btn = Button(
+            text='Options',
+            font_size=24,
+            size_hint=(None, None),
+            size=(150, 50),
+            pos_hint={'center_x': 0.5, 'center_y': 0.2},
+            background_color=(0.4, 0.4, 0.5, 0.9)
+        )
+        self.options_btn.bind(on_press=self._on_options)
+        self.add_widget(self.options_btn)
         
         # Animate the start label (pulsing effect)
         self._start_animation()
@@ -85,10 +98,17 @@ class StartScreen(BaseScreen):
         anim.repeat = True
         anim.start(self.start_label)
     
+    def _on_options(self, instance):
+        """Open options/settings screen."""
+        self.app.switch_screen(SCREENS['SETTINGS'])
+    
     def on_tap(self, instance, touch):
         """Handle tap to start the game."""
+        # Don't trigger if tapping the options button
+        if self.options_btn.collide_point(*touch.pos):
+            return False
         if self.collide_point(*touch.pos):
-            self.app.switch_screen(SCREENS['GAME'])
+            self.app.switch_screen(SCREENS['DIFFICULTY_SELECT'])
             return True
         return False
     

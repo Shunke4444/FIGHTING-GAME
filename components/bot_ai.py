@@ -28,29 +28,36 @@ class BotAI:
     def _setup_difficulty(self):
         """Set AI parameters based on difficulty."""
         if self.difficulty == 'easy':
-            self.reaction_time = 30  # frames before reacting
-            self.attack_chance = 0.3
-            self.dodge_chance = 0.1
-            self.aggression = 0.3
+            self.reaction_time = 20  # frames before reacting
+            self.attack_chance = 0.4
+            self.dodge_chance = 0.2
+            self.aggression = 0.4
         elif self.difficulty == 'medium':
-            self.reaction_time = 15
-            self.attack_chance = 0.5
-            self.dodge_chance = 0.3
-            self.aggression = 0.5
-        else:  # hard
-            self.reaction_time = 5
-            self.attack_chance = 0.7
-            self.dodge_chance = 0.5
-            self.aggression = 0.7
+            self.reaction_time = 10
+            self.attack_chance = 0.6
+            self.dodge_chance = 0.4
+            self.aggression = 0.6
+        elif self.difficulty == 'hard':
+            self.reaction_time = 3
+            self.attack_chance = 0.8
+            self.dodge_chance = 0.6
+            self.aggression = 0.8
+        else:  # nightmare
+            self.reaction_time = 1  # Nearly instant reactions
+            self.attack_chance = 0.95
+            self.dodge_chance = 0.85
+            self.aggression = 0.98
     
     def _get_decision_interval(self):
         """Get decision interval based on difficulty."""
         if self.difficulty == 'easy':
-            return random.randint(20, 40)
+            return random.randint(15, 30)
         elif self.difficulty == 'medium':
-            return random.randint(10, 25)
-        else:
-            return random.randint(5, 15)
+            return random.randint(8, 18)
+        elif self.difficulty == 'hard':
+            return random.randint(3, 10)
+        else:  # nightmare
+            return random.randint(1, 3)  # Near-instant decisions
     
     def update(self, target, screen_width):
         """Update AI decision making and control the fighter."""
@@ -113,14 +120,14 @@ class BotAI:
         
         # Attack chance
         if roll < self.attack_chance:
-            self._do_attack()
+            self._do_attack(target)
         # Sometimes back off
         elif roll < self.attack_chance + 0.2:
             self._back_off(target)
         # Sometimes jump attack
         elif roll < self.attack_chance + 0.3:
             self.fighter.do_jump()
-            self._do_attack()
+            self._do_attack(target)
     
     def _medium_range_decision(self, target):
         """Decision making at medium range."""
@@ -178,19 +185,42 @@ class BotAI:
     
     def _dodge(self, target):
         """Dodge away from target's attack."""
-        self._back_off(target)
-        # Maybe jump while dodging
-        if random.random() < 0.4:
-            self.fighter.do_jump()
+        # Use the dash dodge if available
+        if self.fighter.dodge_cooldown == 0 and random.random() < 0.6:
+            # Face away from target to dash away
+            self.fighter.flip = self.fighter.x < target.x
+            self.fighter.do_dodge()
+        else:
+            # Fall back to backing off
+            self._back_off(target)
+            # Maybe jump while dodging
+            if random.random() < 0.4:
+                self.fighter.do_jump()
     
-    def _do_attack(self):
+    def _do_attack(self, target=None):
         """Perform an attack."""
         # Choose attack type
         attack_type = random.choice([1, 2])
         
-        # Occasionally do special attack (both attacks)
+        # Occasionally do special attack (Attack 3 = A2 while moving)
         if random.random() < 0.15:
             attack_type = 3
+            # Attack 3 requires movement, so start moving towards target
+            if target is not None:
+                if self.fighter.x < target.x:
+                    self.fighter.move_left = False
+                    self.fighter.move_right = True
+                else:
+                    self.fighter.move_left = True
+                    self.fighter.move_right = False
+            else:
+                # Default: move in the direction we're facing
+                if self.fighter.flip:
+                    self.fighter.move_left = True
+                    self.fighter.move_right = False
+                else:
+                    self.fighter.move_left = False
+                    self.fighter.move_right = True
         
         self.fighter.do_attack(attack_type)
         self.current_action = 'attacking'

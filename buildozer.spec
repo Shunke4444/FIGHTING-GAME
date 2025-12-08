@@ -1,9 +1,9 @@
 [app]
 # (str) Title of your application
-title = Fighting Game
+title = Forest Fighter 2
 
 # (str) Package name
-package.name = fightinggame
+package.name = forestfighter2
 
 # (str) Package domain (needed for android/ios packaging)
 package.domain = org.fightinggame

@@ -43,6 +43,11 @@ ATTACK_RANGE = 80
 # Cooldowns (in frames)
 HIT_COOLDOWN = 45      # Invincibility after getting hit
 ATTACK_COOLDOWN = 25   # Delay between attacks
+DODGE_COOLDOWN = 60    # Delay between dodges (1 second at 60 FPS)
+
+# Dodge settings
+DODGE_DISTANCE = 150   # How far the dodge moves
+DODGE_DURATION = 8     # How many frames the dodge lasts
 
 # Animation speed (frames per animation frame)
 FRAMES_PER_ANIMATION = 5
@@ -53,9 +58,9 @@ FRAMES_PER_ANIMATION = 5
 
 SPRITE_CONFIG = {
     'fantasy_warrior': {
-        'scale_width': 300,
-        'scale_height': 400,
-        'visual_y_pull': 70,
+        'scale_width': 250,
+        'scale_height': 250,
+        'visual_y_pull': 35,
         'death_y_adj': 20,
         'animations': {
             'Idle': 10,
@@ -69,10 +74,10 @@ SPRITE_CONFIG = {
         }
     },
     'knight': {
-        'scale_width': 300,
-        'scale_height': 400,
-        'visual_y_pull': -83,
-        'death_y_adj': 20,
+        'scale_width': 250,
+        'scale_height': 170,
+        'visual_y_pull': -60,
+        'death_y_adj': 10,
         'animations': {
             'Idle': 10,
             'Run': 10,
@@ -120,6 +125,8 @@ SCREENS = {
     'GAME': 'game',
     'PAUSE': 'pause',
     'GAME_OVER': 'game_over',
+    'SETTINGS': 'settings',
+    'CONTROL_LAYOUT': 'control_layout',
 }
 
 # =============================================================================
@@ -153,5 +160,10 @@ BOT_DIFFICULTY = {
         'reaction_time': 5,
         'attack_chance': 0.7,
         'block_chance': 0.5,
+    },
+    'nightmare': {
+        'reaction_time': 2,
+        'attack_chance': 0.85,
+        'block_chance': 0.7,
     },
 }
