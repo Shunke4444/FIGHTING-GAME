@@ -3,6 +3,7 @@ Difficulty Select Screen
 Allows selecting bot difficulty for single player mode
 """
 
+import os
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
@@ -19,6 +20,11 @@ class DifficultySelectScreen(BaseScreen):
     def __init__(self, app, **kwargs):
         super().__init__(app, **kwargs)
         
+        # Load pixel fonts
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.pixelmax_font = os.path.join(base_path, 'assets/fonts/Pixelmax-Regular.otf')
+        self.pixelade_font = os.path.join(base_path, 'assets/fonts/PIXELADE.TTF')
+        
         # Background
         with self.canvas.before:
             Color(0.1, 0.1, 0.15, 1)
@@ -29,7 +35,7 @@ class DifficultySelectScreen(BaseScreen):
         self.title = Label(
             text='SELECT DIFFICULTY',
             font_size=48,
-            bold=True,
+            font_name=self.pixelmax_font,
             color=(1, 1, 1, 1),
             pos_hint={'center_x': 0.5, 'center_y': 0.85},
             size_hint=(None, None)
@@ -46,7 +52,8 @@ class DifficultySelectScreen(BaseScreen):
             size=(150, 50),
             pos_hint={'center_x': 0.5, 'center_y': 0.08},
             background_color=(0.5, 0.5, 0.5, 1),
-            font_size=24
+            font_size=24,
+            font_name=self.pixelade_font
         )
         self.back_btn.bind(on_press=self.on_back)
         self.add_widget(self.back_btn)
@@ -73,6 +80,7 @@ class DifficultySelectScreen(BaseScreen):
                 pos_hint={'center_x': 0.35, 'center_y': y_pos},
                 background_color=color,
                 font_size=28,
+                font_name=self.pixelade_font,
                 bold=True
             )
             btn.difficulty = diff_id
@@ -83,6 +91,7 @@ class DifficultySelectScreen(BaseScreen):
             desc_label = Label(
                 text=desc,
                 font_size=18,
+                font_name=self.pixelade_font,
                 color=(0.8, 0.8, 0.8, 1),
                 pos_hint={'center_x': 0.65, 'center_y': y_pos},
                 size_hint=(None, None),

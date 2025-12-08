@@ -3,6 +3,7 @@ Control Layout Screen
 Allows users to customize touch control positions, size, and opacity
 """
 
+import os
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.slider import Slider
@@ -97,6 +98,11 @@ class ControlLayoutScreen(BaseScreen):
     
     def _create_ui(self):
         """Create the control layout editor UI."""
+        # Load pixel fonts
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.pixelmax_font = os.path.join(base_path, 'assets/fonts/Pixelmax-Regular.otf')
+        self.pixelade_font = os.path.join(base_path, 'assets/fonts/PIXELADE.TTF')
+        
         # Background
         with self.canvas.before:
             Color(0.15, 0.15, 0.2, 1)
@@ -107,6 +113,7 @@ class ControlLayoutScreen(BaseScreen):
         self.instructions = Label(
             text='Tap a button to select it, then adjust size/opacity. Drag to reposition.',
             font_size=18,
+            font_name=self.pixelade_font,
             color=(1, 1, 1, 0.8),
             size_hint=(None, None),
             pos_hint={'center_x': 0.5, 'top': 0.98}
@@ -166,6 +173,7 @@ class ControlLayoutScreen(BaseScreen):
         self.selected_label = Label(
             text='No button selected - tap a button above',
             font_size=16,
+            font_name=self.pixelade_font,
             color=(1, 1, 0, 1),  # Yellow to match selection highlight
             size_hint=(None, None),
             size=(400, 30),
@@ -177,6 +185,7 @@ class ControlLayoutScreen(BaseScreen):
         size_label = Label(
             text='Size:',
             font_size=16,
+            font_name=self.pixelade_font,
             size_hint=(None, None),
             size=(60, 30),
             pos=(20, panel_height - 60)
@@ -197,6 +206,7 @@ class ControlLayoutScreen(BaseScreen):
         self.size_value_label = Label(
             text='1.0x',
             font_size=14,
+            font_name=self.pixelade_font,
             size_hint=(None, None),
             size=(50, 30),
             pos=(290, panel_height - 60)
@@ -207,6 +217,7 @@ class ControlLayoutScreen(BaseScreen):
         opacity_label = Label(
             text='Opacity:',
             font_size=16,
+            font_name=self.pixelade_font,
             size_hint=(None, None),
             size=(70, 30),
             pos=(20, panel_height - 95)
@@ -227,6 +238,7 @@ class ControlLayoutScreen(BaseScreen):
         self.opacity_value_label = Label(
             text='80%',
             font_size=14,
+            font_name=self.pixelade_font,
             size_hint=(None, None),
             size=(50, 30),
             pos=(300, panel_height - 95)
@@ -242,6 +254,7 @@ class ControlLayoutScreen(BaseScreen):
         reset_btn = Button(
             text='Reset',
             font_size=18,
+            font_name=self.pixelade_font,
             size_hint=(None, None),
             size=(btn_width, btn_height),
             pos=(20, btn_y),
@@ -254,6 +267,7 @@ class ControlLayoutScreen(BaseScreen):
         save_preset_btn = Button(
             text='Save Preset',
             font_size=18,
+            font_name=self.pixelade_font,
             size_hint=(None, None),
             size=(btn_width, btn_height),
             pos=(160, btn_y),
@@ -266,6 +280,7 @@ class ControlLayoutScreen(BaseScreen):
         load_preset_btn = Button(
             text='Load Preset',
             font_size=18,
+            font_name=self.pixelade_font,
             size_hint=(None, None),
             size=(btn_width, btn_height),
             pos=(300, btn_y),
@@ -278,6 +293,7 @@ class ControlLayoutScreen(BaseScreen):
         back_btn = Button(
             text='Done',
             font_size=18,
+            font_name=self.pixelade_font,
             size_hint=(None, None),
             size=(btn_width, btn_height),
             pos=(Window.width - btn_width - 20, btn_y),

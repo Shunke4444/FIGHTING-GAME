@@ -3,6 +3,7 @@ Settings Screen
 Options menu for game settings
 """
 
+import os
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
@@ -27,6 +28,11 @@ class SettingsScreen(BaseScreen):
     
     def _create_ui(self):
         """Create the settings UI."""
+        # Load pixel fonts
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.pixelmax_font = os.path.join(base_path, 'assets/fonts/Pixelmax-Regular.otf')
+        self.pixelade_font = os.path.join(base_path, 'assets/fonts/PIXELADE.TTF')
+        
         # Background
         with self.canvas.before:
             Color(0.1, 0.1, 0.15, 1)
@@ -37,6 +43,7 @@ class SettingsScreen(BaseScreen):
         self.title = Label(
             text='SETTINGS',
             font_size=48,
+            font_name=self.pixelmax_font,
             bold=True,
             color=(1, 1, 1, 1),
             size_hint=(None, None),
@@ -63,6 +70,7 @@ class SettingsScreen(BaseScreen):
         controls_btn = Button(
             text='Control Layout',
             font_size=28,
+            font_name=self.pixelade_font,
             background_color=(0.3, 0.5, 0.8, 1),
             size_hint=(1, None),
             height=70
@@ -74,6 +82,7 @@ class SettingsScreen(BaseScreen):
         reset_btn = Button(
             text='Reset Controls to Default',
             font_size=28,
+            font_name=self.pixelade_font,
             background_color=(0.7, 0.3, 0.3, 1),
             size_hint=(1, None),
             height=70
@@ -85,6 +94,7 @@ class SettingsScreen(BaseScreen):
         audio_label = Label(
             text='AUDIO',
             font_size=24,
+            font_name=self.pixelmax_font,
             bold=True,
             color=(1, 0.8, 0.2, 1),
             size_hint=(1, None),
@@ -94,11 +104,11 @@ class SettingsScreen(BaseScreen):
         
         # Music Volume Slider
         music_row = BoxLayout(orientation='horizontal', size_hint=(1, None), height=50, spacing=10)
-        music_label = Label(text='Music:', font_size=18, size_hint=(0.35, 1), halign='left')
+        music_label = Label(text='Music:', font_size=18, font_name=self.pixelade_font, size_hint=(0.35, 1), halign='left')
         music_label.bind(size=music_label.setter('text_size'))
         self.music_slider = Slider(min=0, max=100, value=self.settings.get_music_volume() * 100, size_hint=(0.5, 1))
         self.music_slider.bind(value=self._on_music_volume_change)
-        self.music_value_label = Label(text=f'{int(self.music_slider.value)}%', font_size=16, size_hint=(0.15, 1))
+        self.music_value_label = Label(text=f'{int(self.music_slider.value)}%', font_size=16, font_name=self.pixelade_font, size_hint=(0.15, 1))
         music_row.add_widget(music_label)
         music_row.add_widget(self.music_slider)
         music_row.add_widget(self.music_value_label)
@@ -106,11 +116,11 @@ class SettingsScreen(BaseScreen):
         
         # SFX Volume Slider
         sfx_row = BoxLayout(orientation='horizontal', size_hint=(1, None), height=50, spacing=10)
-        sfx_label = Label(text='SFX:', font_size=18, size_hint=(0.35, 1), halign='left')
+        sfx_label = Label(text='SFX:', font_size=18, font_name=self.pixelade_font, size_hint=(0.35, 1), halign='left')
         sfx_label.bind(size=sfx_label.setter('text_size'))
         self.sfx_slider = Slider(min=0, max=100, value=self.settings.get_sfx_volume() * 100, size_hint=(0.5, 1))
         self.sfx_slider.bind(value=self._on_sfx_volume_change)
-        self.sfx_value_label = Label(text=f'{int(self.sfx_slider.value)}%', font_size=16, size_hint=(0.15, 1))
+        self.sfx_value_label = Label(text=f'{int(self.sfx_slider.value)}%', font_size=16, font_name=self.pixelade_font, size_hint=(0.15, 1))
         sfx_row.add_widget(sfx_label)
         sfx_row.add_widget(self.sfx_slider)
         sfx_row.add_widget(self.sfx_value_label)
@@ -120,6 +130,7 @@ class SettingsScreen(BaseScreen):
         back_btn = Button(
             text='Back',
             font_size=28,
+            font_name=self.pixelade_font,
             background_color=(0.5, 0.5, 0.5, 1),
             size_hint=(1, None),
             height=70
