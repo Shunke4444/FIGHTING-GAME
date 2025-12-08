@@ -52,7 +52,7 @@ class DraggableButton(Button):
             
             self.pos = (new_x, new_y)
             return True
-        return super().on_touch_move(touch)me
+        return super().on_touch_move(touch)
     
     def on_touch_up(self, touch):
         if self.dragging:

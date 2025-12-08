@@ -62,7 +62,7 @@ class StartScreen(BaseScreen):
         # OPTIONS BUTTON (Image)
         options_img_path = os.path.join(base_path, 'assets/images/ui/Options.png')
         self.options_btn = Button(
-            size_hint=(0.45, 0.50),
+            size_hint=(0.15, 0.10),
             pos_hint={'center_x': 0.5, 'center_y': 0.18},
             background_normal=options_img_path,
             background_down=options_img_path
