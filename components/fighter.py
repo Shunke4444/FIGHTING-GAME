@@ -149,7 +149,7 @@ class Fighter:
     def load_sounds(self):
         """Load sound effects for the fighter."""
         base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        sfx_path = os.path.join(base_path, 'assets', 'images', 'sound effects')
+        sfx_path = os.path.join(base_path, 'assets', 'images', 'sound_effects')
         
         def load_sound(file_path):
             """Load a sound using Kivy's SoundLoader."""
@@ -186,7 +186,7 @@ class Fighter:
             self.sounds['land'].volume = 0.4
         
         # Load sword attack sounds
-        sword_path = os.path.join(sfx_path, 'Sword Attacks Hits and Blocks')
+        sword_path = os.path.join(sfx_path, 'sword_attacks_hits_and_blocks')
         
         sword_files = {
             'sword1': os.path.join(sword_path, 'Sword Attack 1.wav'),

@@ -603,10 +603,20 @@ class GameScreen(BaseScreen):
     def _load_background_music(self):
         """Load the background music."""
         base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        music_path = os.path.join(base_path, 'assets', 'images', 'sound effects', 
-                                   'background music', 'Limbus Company - Middle Finger Toujou.mp3')
-        if os.path.exists(music_path):
-            self.bg_music = SoundLoader.load(music_path)
+        # Prefer a packaged WAV/OGG file where available; fall back to MP3
+        wav_path = os.path.join(base_path, 'assets', 'images', 'sound_effects',
+                                'background_music', 'Limbus_Company_Middle_Finger_Toujou.wav')
+        mp3_path = os.path.join(base_path, 'assets', 'images', 'sound_effects',
+                                'background_music', 'Limbus Company - Middle Finger Toujou.mp3')
+
+        chosen_path = None
+        if os.path.exists(wav_path):
+            chosen_path = wav_path
+        elif os.path.exists(mp3_path):
+            chosen_path = mp3_path
+
+        if chosen_path:
+            self.bg_music = SoundLoader.load(chosen_path)
             if self.bg_music:
                 self.bg_music.loop = True
                 # Use saved volume setting
