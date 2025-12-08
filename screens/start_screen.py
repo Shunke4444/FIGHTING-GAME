@@ -53,15 +53,17 @@ class StartScreen(BaseScreen):
             font_name=self.pixelade_font,
             color=(1, 1, 1, 0.8),
             pos_hint={'center_x': 0.5, 'center_y': 0.40},
-            size_hint=(None, None)
+            size_hint=(None, None),
+            size=(400, 50)
         )
+        self.start_label.bind(size=self.start_label.setter('text_size'))
         self.add_widget(self.start_label)
 
         # OPTIONS BUTTON (Image)
         options_img_path = os.path.join(base_path, 'assets/images/ui/Options.png')
         self.options_btn = Button(
-            size_hint=(0.45, 0.25),
-            pos_hint={'center_x': 0.5, 'center_y': 0.20},
+            size_hint=(0.45, 0.50),
+            pos_hint={'center_x': 0.5, 'center_y': 0.18},
             background_normal=options_img_path,
             background_down=options_img_path
         )
@@ -144,9 +146,12 @@ class StartScreen(BaseScreen):
         self.app.switch_screen(SCREENS['SETTINGS'])
 
     def on_tap(self, instance, touch):
+        # Check if touch is on the options button (priority)
         if self.options_btn.collide_point(*touch.pos):
+            # Don't consume it, let the button handle it
             return False
-
+        
+        # Otherwise, tap to start
         if self.collide_point(*touch.pos):
             self.app.switch_screen(SCREENS['DIFFICULTY_SELECT'])
             return True

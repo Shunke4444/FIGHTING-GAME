@@ -77,41 +77,41 @@ class DifficultySelectScreen(BaseScreen):
 
         # Resize difficulty buttons & descriptions
         for child in self.children[0].children:
-            if isinstance(child, Button):
-                child.font_size = scale(50)
             if isinstance(child, Label) and child is not self.title:
                 child.font_size = scale(36)
 
     def _create_difficulty_buttons(self, parent):
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
         difficulties = [
-            ('easy', 'EASY', 'Relaxed gameplay\nBot reacts slowly', (0.3, 0.7, 0.3, 1), 0.78),
-            ('medium', 'MEDIUM', 'Balanced challenge\nBot is moderately skilled', (0.7, 0.7, 0.3, 1), 0.59),
-            ('hard', 'HARD', 'Tough opponent\nBot reacts quickly', (0.8, 0.4, 0.2, 1), 0.40),
-            ('nightmare', 'NIGHTMARE', 'Brutal difficulty\nBot shows no mercy', (0.8, 0.1, 0.1, 1), 0.21),
+            ('easy', 'Easy.png', 'Relaxed gameplay\nBot reacts slowly', (0.18, 0.13), 0.78),
+            ('medium', 'Medium.png', 'Balanced challenge\nBot is moderately skilled', (0.19, 0.16), 0.59),
+            ('hard', 'Hard.png', 'Tough opponent\nBot reacts quickly', (0.18, 0.13), 0.40),
+            ('nightmare', 'Nightmare.png', 'Brutal difficulty\nBot shows no mercy', (0.19, 0.17), 0.21),
         ]
 
-        for diff_id, name, desc, color, y in difficulties:
-
+        for diff_id, img_name, desc, size_hint, y in difficulties:
+            img_path = os.path.join(base_path, f'assets/images/ui/difficult_select/{img_name}')
+            
+            # Button on the left
             btn = Button(
-                text=name,
-                size_hint=(0.22, 0.11),
-                pos_hint={'center_x': 0.25, 'center_y': y},
-                background_color=color,
-                font_size=scale(50),
-                font_name=self.pixelade_font,
-                bold=True
+                size_hint=size_hint,
+                pos_hint={'x': 0.25, 'center_y': y},
+                background_normal=img_path,
+                background_down=img_path
             )
             btn.difficulty = diff_id
             btn.bind(on_press=self.on_difficulty_select)
             parent.add_widget(btn)
 
+            # Description to the right of button with gap
             desc_label = Label(
                 text=desc,
                 font_size=scale(36),
                 font_name=self.pixelade_font,
                 color=(0.8, 0.8, 0.8, 1),
-                size_hint=(0.45, 0.11),
-                pos_hint={'center_x': 0.60, 'center_y': y},
+                size_hint=(0.35, 0.11),
+                pos_hint={'x': 0.50, 'center_y': y},
                 halign='left',
                 valign='middle'
             )
