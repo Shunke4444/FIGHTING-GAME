@@ -39,32 +39,30 @@ class SettingsScreen(BaseScreen):
             self.bg_rect = Rectangle(pos=self.pos, size=self.size)
         self.bind(size=self._update_bg)
         
+        # Main vertical layout
+        main_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        
         # Title
         self.title = Label(
             text='SETTINGS',
-            font_size=48,
+            font_size=56,
             font_name=self.pixelmax_font,
             bold=True,
             color=(1, 1, 1, 1),
-            size_hint=(None, None),
-            pos_hint={'center_x': 0.5, 'top': 0.95}
+            size_hint=(1, None),
+            height=70
         )
-        self.add_widget(self.title)
+        main_layout.add_widget(self.title)
         
-        # Main horizontal layout to hold buttons and combo list side by side
-        main_layout = BoxLayout(
-            orientation='horizontal',
-            spacing=40,
-            size_hint=(0.9, 0.7),
-            pos_hint={'center_x': 0.5, 'center_y': 0.45}
-        )
-        
-        # Left side: Buttons
-        self.buttons_layout = BoxLayout(
+        # Scrollable content
+        scroll_view = ScrollView(size_hint=(1, 1))
+        content_layout = BoxLayout(
             orientation='vertical',
-            spacing=20,
-            size_hint=(0.4, 1)
+            spacing=15,
+            size_hint=(1, None),
+            padding=10
         )
+        content_layout.bind(minimum_height=content_layout.setter('height'))
         
         # Control Layout button
         controls_btn = Button(
@@ -73,10 +71,10 @@ class SettingsScreen(BaseScreen):
             font_name=self.pixelade_font,
             background_color=(0.3, 0.5, 0.8, 1),
             size_hint=(1, None),
-            height=70
+            height=60
         )
         controls_btn.bind(on_press=self._on_controls)
-        self.buttons_layout.add_widget(controls_btn)
+        content_layout.add_widget(controls_btn)
         
         # Reset Controls button
         reset_btn = Button(
@@ -85,106 +83,64 @@ class SettingsScreen(BaseScreen):
             font_name=self.pixelade_font,
             background_color=(0.7, 0.3, 0.3, 1),
             size_hint=(1, None),
-            height=70
+            height=60
         )
         reset_btn.bind(on_press=self._on_reset_controls)
-        self.buttons_layout.add_widget(reset_btn)
+        content_layout.add_widget(reset_btn)
         
         # Audio Settings Section
         audio_label = Label(
             text='AUDIO',
-            font_size=24,
+            font_size=32,
             font_name=self.pixelmax_font,
             bold=True,
             color=(1, 0.8, 0.2, 1),
             size_hint=(1, None),
-            height=40
+            height=50
         )
-        self.buttons_layout.add_widget(audio_label)
+        content_layout.add_widget(audio_label)
         
         # Music Volume Slider
         music_row = BoxLayout(orientation='horizontal', size_hint=(1, None), height=50, spacing=10)
-        music_label = Label(text='Music:', font_size=18, font_name=self.pixelade_font, size_hint=(0.35, 1), halign='left')
+        music_label = Label(text='Music:', font_size=26, font_name=self.pixelade_font, size_hint=(0.3, 1), halign='left')
         music_label.bind(size=music_label.setter('text_size'))
-        self.music_slider = Slider(min=0, max=100, value=self.settings.get_music_volume() * 100, size_hint=(0.5, 1))
+        self.music_slider = Slider(min=0, max=100, value=self.settings.get_music_volume() * 100, size_hint=(0.55, 1))
         self.music_slider.bind(value=self._on_music_volume_change)
-        self.music_value_label = Label(text=f'{int(self.music_slider.value)}%', font_size=16, font_name=self.pixelade_font, size_hint=(0.15, 1))
+        self.music_value_label = Label(text=f'{int(self.music_slider.value)}%', font_size=24, font_name=self.pixelade_font, size_hint=(0.15, 1))
         music_row.add_widget(music_label)
         music_row.add_widget(self.music_slider)
         music_row.add_widget(self.music_value_label)
-        self.buttons_layout.add_widget(music_row)
+        content_layout.add_widget(music_row)
         
         # SFX Volume Slider
         sfx_row = BoxLayout(orientation='horizontal', size_hint=(1, None), height=50, spacing=10)
-        sfx_label = Label(text='SFX:', font_size=18, font_name=self.pixelade_font, size_hint=(0.35, 1), halign='left')
+        sfx_label = Label(text='SFX:', font_size=26, font_name=self.pixelade_font, size_hint=(0.3, 1), halign='left')
         sfx_label.bind(size=sfx_label.setter('text_size'))
-        self.sfx_slider = Slider(min=0, max=100, value=self.settings.get_sfx_volume() * 100, size_hint=(0.5, 1))
+        self.sfx_slider = Slider(min=0, max=100, value=self.settings.get_sfx_volume() * 100, size_hint=(0.55, 1))
         self.sfx_slider.bind(value=self._on_sfx_volume_change)
-        self.sfx_value_label = Label(text=f'{int(self.sfx_slider.value)}%', font_size=16, font_name=self.pixelade_font, size_hint=(0.15, 1))
+        self.sfx_value_label = Label(text=f'{int(self.sfx_slider.value)}%', font_size=24, font_name=self.pixelade_font, size_hint=(0.15, 1))
         sfx_row.add_widget(sfx_label)
         sfx_row.add_widget(self.sfx_slider)
         sfx_row.add_widget(self.sfx_value_label)
-        self.buttons_layout.add_widget(sfx_row)
+        content_layout.add_widget(sfx_row)
         
-        # Back button
-        back_btn = Button(
-            text='Back',
-            font_size=28,
-            font_name=self.pixelade_font,
-            background_color=(0.5, 0.5, 0.5, 1),
-            size_hint=(1, None),
-            height=70
-        )
-        back_btn.bind(on_press=self._on_back)
-        self.buttons_layout.add_widget(back_btn)
-        
-        # Spacer to push buttons to top
-        self.buttons_layout.add_widget(Label(size_hint=(1, 1)))
-        
-        main_layout.add_widget(self.buttons_layout)
-        
-        # Right side: Attack Sequences / Combo List
-        combo_panel = self._create_combo_panel()
-        main_layout.add_widget(combo_panel)
-        
-        self.add_widget(main_layout)
-    
-    def _create_combo_panel(self):
-        """Create the attack sequences / combo list panel."""
-        # Container with background
-        panel = FloatLayout(size_hint=(0.55, 1))
-        
-        with panel.canvas.before:
-            Color(0.15, 0.15, 0.2, 0.9)
-            self.panel_bg = Rectangle(pos=panel.pos, size=panel.size)
-        panel.bind(pos=self._update_panel_bg, size=self._update_panel_bg)
-        
-        # Panel title
-        panel_title = Label(
+        # Attack Sequences Section
+        attack_label = Label(
             text='ATTACK SEQUENCES',
-            font_size=28,
+            font_size=32,
+            font_name=self.pixelmax_font,
             bold=True,
             color=(1, 0.8, 0.2, 1),
             size_hint=(1, None),
-            height=40,
-            pos_hint={'center_x': 0.5, 'top': 1}
+            height=50
         )
-        panel.add_widget(panel_title)
-        
-        # Combo list content
-        combo_content = BoxLayout(
-            orientation='vertical',
-            spacing=8,
-            padding=[15, 10, 15, 10],
-            size_hint=(1, 0.85),
-            pos_hint={'center_x': 0.5, 'top': 0.88}
-        )
+        content_layout.add_widget(attack_label)
         
         # Define attack sequences
         attacks = [
-            ('Attack 1 (A1)', 'J key / A1 button', 'Quick jab attack'),
-            ('Attack 2 (A2)', 'K key / A2 button', 'Strong punch attack'),
-            ('Attack 3 (Combo)', 'A2 + Direction', 'Powerful combo attack\n(Press A2 while moving left/right)'),
+            ('Attack A (A)', 'J key / A button', 'Quick jab attack'),
+            ('Attack B (B)', 'K key / B button', 'Strong punch attack'),
+            ('Attack C (Combo)', 'B + Direction', 'Powerful combo attack\n(Press B while moving left/right)'),
             ('Jump', 'W key / ^ button', 'Jump into the air'),
             ('Dash/Dodge', 'SPACE key / DASH button', 'Quick dash to evade attacks'),
             ('Move Left', 'A key / < button', 'Move left'),
@@ -193,67 +149,72 @@ class SettingsScreen(BaseScreen):
         
         for attack_name, keys, description in attacks:
             attack_row = self._create_attack_row(attack_name, keys, description)
-            combo_content.add_widget(attack_row)
+            content_layout.add_widget(attack_row)
         
-        panel.add_widget(combo_content)
+        scroll_view.add_widget(content_layout)
+        main_layout.add_widget(scroll_view)
         
-        return panel
-    
-    def _create_attack_row(self, name, keys, description):
-        """Create a single attack row for the combo list."""
-        row = BoxLayout(
-            orientation='horizontal',
-            spacing=10,
+        # Back button
+        back_btn = Button(
+            text='Back',
+            font_size=28,
+            font_name=self.pixelade_font,
+            background_color=(0.5, 0.5, 0.5, 1),
             size_hint=(1, None),
-            height=50
+            height=60
         )
+        back_btn.bind(on_press=self._on_back)
+        main_layout.add_widget(back_btn)
         
-        # Attack name (left side)
+        self.add_widget(main_layout)
+    
+    def _create_attack_row(self, attack_name, keys, description):
+        """Create a single attack sequence row."""
+        attack_row = BoxLayout(orientation='horizontal', spacing=15, size_hint=(1, None), height=80, padding=5)
+        
+        # Left side: Attack name and description
+        left_layout = BoxLayout(orientation='vertical', spacing=3, size_hint=(0.65, 1))
+        
         name_label = Label(
-            text=name,
-            font_size=18,
+            text=attack_name,
+            font_size=20,
+            font_name=self.pixelmax_font,
             bold=True,
-            color=(0.4, 0.8, 1, 1),
-            size_hint=(0.3, 1),
-            halign='left',
-            valign='middle'
+            color=(1, 0.8, 0.2, 1),
+            size_hint=(1, 0.4),
+            halign='left'
         )
         name_label.bind(size=name_label.setter('text_size'))
-        row.add_widget(name_label)
+        left_layout.add_widget(name_label)
         
-        # Keys/buttons (middle)
+        desc_label = Label(
+            text=description,
+            font_size=20,
+            font_name=self.pixelade_font,
+            color=(0.9, 0.9, 0.9, 1),
+            size_hint=(1, 0.6),
+            halign='left',
+            valign='top'
+        )
+        desc_label.bind(size=desc_label.setter('text_size'))
+        left_layout.add_widget(desc_label)
+        
+        attack_row.add_widget(left_layout)
+        
+        # Right side: Keys/buttons
         keys_label = Label(
             text=keys,
-            font_size=16,
-            color=(1, 1, 0.5, 1),
-            size_hint=(0.25, 1),
-            halign='center',
+            font_size=20,
+            font_name=self.pixelade_font,
+            color=(0.8, 0.8, 1, 1),
+            size_hint=(0.35, 1),
+            halign='right',
             valign='middle'
         )
         keys_label.bind(size=keys_label.setter('text_size'))
-        row.add_widget(keys_label)
+        attack_row.add_widget(keys_label)
         
-        # Description (right side)
-        desc_label = Label(
-            text=description,
-            font_size=14,
-            color=(0.8, 0.8, 0.8, 1),
-            size_hint=(0.45, 1),
-            halign='left',
-            valign='middle'
-        )
-        desc_label.bind(size=desc_label.setter('text_size'))
-        row.add_widget(desc_label)
-        
-        return row
-    
-    def _update_panel_bg(self, *args):
-        """Update panel background."""
-        if hasattr(self, 'panel_bg'):
-            panel = args[0] if args else None
-            if panel:
-                self.panel_bg.pos = panel.pos
-                self.panel_bg.size = panel.size
+        return attack_row
     
     def _update_bg(self, *args):
         """Update background size."""

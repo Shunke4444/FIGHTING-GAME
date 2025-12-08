@@ -1,130 +1,169 @@
-"""
-Difficulty Select Screen
-Allows selecting bot difficulty for single player mode
-"""
-
 import os
 from kivy.uix.label import Label
 from kivy.uix.button import Button
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.widget import Widget
+from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Color, Rectangle
+from kivy.core.window import Window
+from kivy.core.image import Image as CoreImage
 
 from screens.base_screen import BaseScreen
 from config import SCREENS
 
 
+def scale(value):
+    """Scales UI values based on screen size."""
+    base_width = 1920
+    ratio = Window.width / base_width
+    return value * ratio
+
+
 class DifficultySelectScreen(BaseScreen):
-    """Difficulty selection screen."""
-    
+    """Responsive difficulty selection screen."""
+
     def __init__(self, app, **kwargs):
         super().__init__(app, **kwargs)
-        
-        # Load pixel fonts
+
         base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.pixelmax_font = os.path.join(base_path, 'assets/fonts/Pixelmax-Regular.otf')
         self.pixelade_font = os.path.join(base_path, 'assets/fonts/PIXELADE.TTF')
+
+        # Load parallax background
+        self._load_background()
         
-        # Background
-        with self.canvas.before:
-            Color(0.1, 0.1, 0.15, 1)
-            self.bg_rect = Rectangle(pos=self.pos, size=self.size)
+        # Bind to size and position changes
         self.bind(size=self._update_bg, pos=self._update_bg)
-        
+
+        # Layout
+        layout = FloatLayout()
+
         # Title
         self.title = Label(
             text='SELECT DIFFICULTY',
-            font_size=48,
+            font_size=scale(120),
             font_name=self.pixelmax_font,
             color=(1, 1, 1, 1),
-            pos_hint={'center_x': 0.5, 'center_y': 0.85},
-            size_hint=(None, None)
+            pos_hint={'center_x': 0.5, 'top': 0.95},
+            size_hint=(1, None),
+            height=scale(120)
         )
-        self.add_widget(self.title)
-        
-        # Difficulty buttons with descriptions
-        self._create_difficulty_buttons()
-        
+        layout.add_widget(self.title)
+
+        self._create_difficulty_buttons(layout)
+
         # Back button
         self.back_btn = Button(
-            text='Back',
-            size_hint=(None, None),
-            size=(150, 50),
-            pos_hint={'center_x': 0.5, 'center_y': 0.08},
-            background_color=(0.5, 0.5, 0.5, 1),
-            font_size=24,
+            text='BACK',
+            size_hint=(0.25, 0.08),
+            pos_hint={'center_x': 0.5, 'y': 0.02},
+            background_color=(0.4, 0.4, 0.4, 1),
+            font_size=scale(50),
             font_name=self.pixelade_font
         )
         self.back_btn.bind(on_press=self.on_back)
-        self.add_widget(self.back_btn)
-    
+        layout.add_widget(self.back_btn)
+
+        self.add_widget(layout)
+
+        # Listen to window resize
+        Window.bind(on_resize=self._resize_ui)
+
+    def _load_background(self):
+        """Load CloudyForest parallax layers."""
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        self.bg_layers = []
+
+        for i in range(1, 6):
+            bg_path = os.path.join(base_path, f'assets/images/backgrounds/CloudyForest/bg-2_LAYER-{i}.png')
+            try:
+                tex = CoreImage(bg_path).texture
+                self.bg_layers.append(tex)
+            except Exception as e:
+                print(f"Error loading background layer {i}: {e}")
+
+        self._build_parallax_canvas()
+
+    def _build_parallax_canvas(self):
+        """Create rectangles for each layer stacked."""
+        self.canvas.before.clear()
+        with self.canvas.before:
+            Color(1, 1, 1, 1)
+            
+            # Draw in reverse order so layer 5 (foreground) is on top
+            if self.bg_layers:
+                for i in range(len(self.bg_layers) - 1, -1, -1):
+                    tex = self.bg_layers[i]
+                    Rectangle(
+                        texture=tex,
+                        pos=(0, 0),
+                        size=self.size
+                    )
+            else:
+                # Fallback to solid color if no layers loaded
+                Color(0.1, 0.1, 0.15, 1)
+                Rectangle(pos=(0, 0), size=self.size)
+
     def _update_bg(self, *args):
-        self.bg_rect.pos = self.pos
-        self.bg_rect.size = self.size
-    
-    def _create_difficulty_buttons(self):
-        """Create difficulty selection buttons."""
-        difficulties = [
-            ('easy', 'EASY', 'Relaxed gameplay\nBot reacts slowly', (0.3, 0.7, 0.3, 1), 0.68),
-            ('medium', 'MEDIUM', 'Balanced challenge\nBot is moderately skilled', (0.7, 0.7, 0.3, 1), 0.53),
-            ('hard', 'HARD', 'Tough opponent\nBot reacts quickly', (0.8, 0.4, 0.2, 1), 0.38),
-            ('nightmare', 'NIGHTMARE', 'Brutal difficulty\nBot shows no mercy', (0.8, 0.1, 0.1, 1), 0.23),
-        ]
+        """Update background on resize."""
+        self._build_parallax_canvas()
+
+    def _resize_ui(self, *args):
+        """Rescale UI dynamically on window resize."""
+        self.title.font_size = scale(120)
+        self.back_btn.font_size = scale(50)
+
+        # Resize difficulty buttons & descriptions
+        for child in self.children[0].children:
+            if isinstance(child, Label) and child is not self.title:
+                child.font_size = scale(36)
+
+    def _create_difficulty_buttons(self, parent):
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         
-        for diff_id, name, desc, color, y_pos in difficulties:
-            # Button
+        difficulties = [
+            ('easy', 'Easy.png', 'Relaxed gameplay\nBot reacts slowly', (0.18, 0.13), 0.78),
+            ('medium', 'Medium.png', 'Balanced challenge\nBot is moderately skilled', (0.19, 0.16), 0.59),
+            ('hard', 'Hard.png', 'Tough opponent\nBot reacts quickly', (0.18, 0.13), 0.40),
+            ('nightmare', 'Nightmare.png', 'Brutal difficulty\nBot shows no mercy', (0.19, 0.17), 0.21),
+        ]
+
+        for diff_id, img_name, desc, size_hint, y in difficulties:
+            img_path = os.path.join(base_path, f'assets/images/ui/difficult_select/{img_name}')
+            
+            # Button on the left
             btn = Button(
-                text=name,
-                size_hint=(None, None),
-                size=(200, 60),
-                pos_hint={'center_x': 0.35, 'center_y': y_pos},
-                background_color=color,
-                font_size=28,
-                font_name=self.pixelade_font,
-                bold=True
+                size_hint=size_hint,
+                pos_hint={'x': 0.25, 'center_y': y},
+                background_normal=img_path,
+                background_down=img_path
             )
             btn.difficulty = diff_id
             btn.bind(on_press=self.on_difficulty_select)
-            self.add_widget(btn)
-            
-            # Description label
+            parent.add_widget(btn)
+
+            # Description to the right of button with gap
             desc_label = Label(
                 text=desc,
-                font_size=18,
+                font_size=scale(36),
                 font_name=self.pixelade_font,
                 color=(0.8, 0.8, 0.8, 1),
-                pos_hint={'center_x': 0.65, 'center_y': y_pos},
-                size_hint=(None, None),
+                size_hint=(0.35, 0.11),
+                pos_hint={'x': 0.50, 'center_y': y},
                 halign='left',
                 valign='middle'
             )
             desc_label.bind(size=desc_label.setter('text_size'))
-            self.add_widget(desc_label)
-    
+            parent.add_widget(desc_label)
+
     def on_difficulty_select(self, instance):
-        """Handle difficulty selection."""
         difficulty = instance.difficulty
-        
-        # Set difficulty on the game screen's bot
         if hasattr(self.app, 'screens') and SCREENS['GAME'] in self.app.screens:
-            game_screen = self.app.screens[SCREENS['GAME']]
-            game_screen.set_difficulty(difficulty)
-            game_screen.reset_game()
-        
-        # Store selected difficulty in app for future reference
+            game = self.app.screens[SCREENS['GAME']]
+            game.set_difficulty(difficulty)
+            game.reset_game()
+
         self.app.selected_difficulty = difficulty
-        
-        # Go to game
         self.app.switch_screen(SCREENS['GAME'])
-    
+
     def on_back(self, instance):
-        """Go back to previous screen."""
         self.app.switch_screen(SCREENS['START'])
-    
-    def on_enter(self):
-        """Called when entering this screen."""
-        pass
-    
-    def on_leave(self):
-        """Called when leaving this screen."""
-        pass
