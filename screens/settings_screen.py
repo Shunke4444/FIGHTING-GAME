@@ -175,7 +175,7 @@ class SettingsScreen(BaseScreen):
             ('Attack 2 (A2)', 'K key / A2 button', 'Strong punch attack'),
             ('Attack 3 (Combo)', 'A2 + Direction', 'Powerful combo attack\n(Press A2 while moving left/right)'),
             ('Jump', 'W key / ^ button', 'Jump into the air'),
-            ('Dash/Dodge', 'L key / DASH button', 'Quick dash to evade attacks'),
+            ('Dash/Dodge', 'SPACE key / DASH button', 'Quick dash to evade attacks'),
             ('Move Left', 'A key / < button', 'Move left'),
             ('Move Right', 'D key / > button', 'Move right'),
         ]
