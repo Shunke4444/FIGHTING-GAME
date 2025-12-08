@@ -8,7 +8,7 @@ import os
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.image import Image
-from kivy.graphics import Rectangle, Color
+from kivy.graphics import Rectangle, Color, Line
 from kivy.core.image import Image as CoreImage
 from kivy.animation import Animation
 
@@ -25,35 +25,49 @@ class StartScreen(BaseScreen):
         # Load background
         self._load_background()
         
-        # Create title label
+        # Load pixel fonts
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.pixelmax_font = os.path.join(base_path, 'assets/fonts/Pixelmax-Regular.otf')
+        self.pixelade_font = os.path.join(base_path, 'assets/fonts/PIXELADE.TTF')
+        
+        # Create title label with Pixelmax font (header)
         self.title_label = Label(
-            text='FOREST FIGHTER 2',
+            text='FOREST FIGHTER II',
             font_size=64,
-            bold=True,
+            font_name=self.pixelmax_font,
             color=(1, 1, 1, 1),
             pos_hint={'center_x': 0.5, 'center_y': 0.65},
-            size_hint=(None, None)
+            size_hint=(None, None),
+            outline_width=2,
+            outline_color=(0.1, 1, 0.3, 1)
         )
         self.add_widget(self.title_label)
         
-        # Create tap to start label
+        # Add glow effect by drawing text shadow
+        self._add_title_glow()
+        
+        # Create tap to start label with Pixelade font (body text)
         self.start_label = Label(
             text='Tap anywhere to start',
             font_size=32,
+            font_name=self.pixelade_font,
             color=(1, 1, 1, 0.8),
             pos_hint={'center_x': 0.5, 'center_y': 0.4},
             size_hint=(None, None)
         )
         self.add_widget(self.start_label)
         
-        # Create Options button
+        # Create Options button with Pixelade font
         self.options_btn = Button(
             text='Options',
             font_size=24,
+            font_name=self.pixelade_font,
             size_hint=(None, None),
             size=(150, 50),
             pos_hint={'center_x': 0.5, 'center_y': 0.2},
-            background_color=(0.4, 0.4, 0.5, 0.9)
+            background_color=(0.05, 0.35, 0.1, 0.9),
+            background_normal='',
+            background_down=''
         )
         self.options_btn.bind(on_press=self._on_options)
         self.add_widget(self.options_btn)
@@ -75,6 +89,18 @@ class StartScreen(BaseScreen):
             self.bg_texture = None
         
         self._draw_background()
+    
+    def _add_title_glow(self):
+        """Add glow effect to title with shadow layers."""
+        self.canvas.after.clear()
+        with self.canvas.after:
+            # Glow/shadow effect - multiple layers
+            Color(0.2, 0.6, 1, 0.3)  # Blue glow
+            x = self.title_label.center_x
+            y = self.title_label.center_y
+            size = 80
+            # Draw a rectangle glow behind the text
+            Rectangle(pos=(x - size, y - 20), size=(size * 2, 40))
     
     def _draw_background(self):
         """Draw the background."""
@@ -119,7 +145,13 @@ class StartScreen(BaseScreen):
     def on_enter(self):
         """Called when entering this screen."""
         self._draw_background()
+        self._add_title_glow()
+        # Animate title with a scale pulse for extra pizzazz
+        anim = Animation(font_size=70, duration=0.6) + Animation(font_size=64, duration=0.6)
+        anim.repeat = True
+        anim.start(self.title_label)
     
     def on_leave(self):
         """Called when leaving this screen."""
         Animation.cancel_all(self.start_label)
+        Animation.cancel_all(self.title_label)
