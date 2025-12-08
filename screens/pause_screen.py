@@ -3,6 +3,7 @@ Pause Screen
 Overlay shown when the game is paused
 """
 
+import os
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.graphics import Rectangle, Color
@@ -17,6 +18,11 @@ class PauseScreen(BaseScreen):
     def __init__(self, app, **kwargs):
         super().__init__(app, **kwargs)
         
+        # Load pixel fonts
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.pixelmax_font = os.path.join(base_path, 'assets/fonts/Pixelmax-Regular.otf')
+        self.pixelade_font = os.path.join(base_path, 'assets/fonts/PIXELADE.TTF')
+        
         # Semi-transparent background
         with self.canvas.before:
             Color(0, 0, 0, 0.7)
@@ -29,6 +35,7 @@ class PauseScreen(BaseScreen):
         self.title_label = Label(
             text='PAUSED',
             font_size=64,
+            font_name=self.pixelmax_font,
             bold=True,
             color=(1, 1, 1, 1),
             pos_hint={'center_x': 0.5, 'center_y': 0.7},
@@ -43,7 +50,8 @@ class PauseScreen(BaseScreen):
             size=(200, 60),
             pos_hint={'center_x': 0.5, 'center_y': 0.5},
             background_color=(0.3, 0.7, 0.3, 1),
-            font_size=28
+            font_size=28,
+            font_name=self.pixelade_font
         )
         self.resume_btn.bind(on_press=self.on_resume)
         self.add_widget(self.resume_btn)
@@ -55,7 +63,8 @@ class PauseScreen(BaseScreen):
             size=(200, 60),
             pos_hint={'center_x': 0.5, 'center_y': 0.4},
             background_color=(0.7, 0.7, 0.3, 1),
-            font_size=28
+            font_size=28,
+            font_name=self.pixelade_font
         )
         self.restart_btn.bind(on_press=self.on_restart)
         self.add_widget(self.restart_btn)
@@ -67,7 +76,8 @@ class PauseScreen(BaseScreen):
             size=(200, 60),
             pos_hint={'center_x': 0.5, 'center_y': 0.25},
             background_color=(0.5, 0.3, 0.7, 1),
-            font_size=24
+            font_size=24,
+            font_name=self.pixelade_font
         )
         self.difficulty_btn.bind(on_press=self.on_change_difficulty)
         self.add_widget(self.difficulty_btn)
@@ -79,7 +89,8 @@ class PauseScreen(BaseScreen):
             size=(200, 60),
             pos_hint={'center_x': 0.5, 'center_y': 0.1},
             background_color=(0.7, 0.3, 0.3, 1),
-            font_size=28
+            font_size=28,
+            font_name=self.pixelade_font
         )
         self.quit_btn.bind(on_press=self.on_quit)
         self.add_widget(self.quit_btn)
