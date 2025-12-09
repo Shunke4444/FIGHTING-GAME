@@ -5,6 +5,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Color, Rectangle
 from kivy.core.window import Window
 from kivy.core.image import Image as CoreImage
+from kivy.clock import Clock
 
 from screens.base_screen import BaseScreen
 from config import SCREENS
@@ -157,6 +158,13 @@ class DifficultySelectScreen(BaseScreen):
 
     def on_difficulty_select(self, instance):
         difficulty = instance.difficulty
+        
+        # Fade out start screen music before switching
+        if hasattr(self.app, 'screens') and SCREENS['START'] in self.app.screens:
+            start_screen = self.app.screens[SCREENS['START']]
+            if hasattr(start_screen, 'fade_out_music'):
+                start_screen.fade_out_music(duration=0.5)
+        
         if hasattr(self.app, 'screens') and SCREENS['GAME'] in self.app.screens:
             game = self.app.screens[SCREENS['GAME']]
             game.set_difficulty(difficulty)
