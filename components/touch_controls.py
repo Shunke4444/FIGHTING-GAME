@@ -53,8 +53,8 @@ class TouchControls(Widget):
         
         # Define custom width and height for each button type
         button_dims = {
-            'left': (100, 90),
-            'right': (100, 90),
+            'left': (100, 100),
+            'right': (100, 100),
             'atk1': (110, 80),
             'atk2': (110, 80),
             'jump': (110, 80),
@@ -161,7 +161,7 @@ class TouchControls(Widget):
         self.controls.append(atk1_btn)
         
         # Attack 2
-        atk2_pos = controls.get('atk2', {'x': 0.88, 'y': 0.03})
+        atk2_pos = controls.get('atk2', {'x': 0.88, 'y': 0.15})
         atk2_size = self.get_button_size('atk2')
         atk2_opacity = self.get_button_opacity('atk2')
         atk2_btn = Button(
@@ -198,7 +198,7 @@ class TouchControls(Widget):
         self.controls.append(jump_btn)
         
         # Dash button
-        dodge_pos = controls.get('dodge', {'x': 0.78, 'y': 0.15})
+        dodge_pos = controls.get('dodge', {'x': 0.78, 'y': 0.03})
         dodge_size = self.get_button_size('dodge')
         dodge_opacity = self.get_button_opacity('dodge')
         dash_btn = Button(
