@@ -45,7 +45,7 @@ class BotAI:
         else:  # nightmare
             self.reaction_time = 1  # Nearly instant reactions
             self.attack_chance = 0.95
-            self.dodge_chance = 0.85
+            self.dodge_chance = 0.35  # Much lower dodge chance - prefer attacking
             self.aggression = 0.98
     
     def _get_decision_interval(self):
@@ -112,6 +112,19 @@ class BotAI:
     def _close_range_decision(self, target):
         """Decision making when close to target."""
         roll = random.random()
+        
+        # Nightmare: prioritize attacking, rarely dodge
+        if self.difficulty == 'nightmare':
+            # Almost always attack when close
+            if roll < self.attack_chance:
+                self._do_attack(target)
+            # Small chance to dodge if target attacking
+            elif target.attacking and roll < self.attack_chance + 0.03:
+                self._dodge(target)
+            # Otherwise keep attacking
+            else:
+                self._do_attack(target)
+            return
         
         # If target is attacking, maybe dodge
         if target.attacking and roll < self.dodge_chance:
