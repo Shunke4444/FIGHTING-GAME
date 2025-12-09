@@ -7,7 +7,9 @@ Scales automatically with screen size
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
+from kivy.uix.image import Image
 from kivy.core.window import Window
+import os
 
 from config import COLORS
 from utils.settings import SettingsManager
@@ -26,6 +28,9 @@ class TouchControls(Widget):
         # Track which attack buttons are pressed for combo
         self.attack_buttons_pressed = set()
         
+        # Base path for UI images
+        self.assets_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'images', 'ui', 'fighting_screen')
+        
         # Bind to window resize
         Window.bind(size=self.on_window_resize)
     
@@ -39,15 +44,32 @@ class TouchControls(Widget):
         return min(width_scale, height_scale)
     
     def get_button_size(self, control_name=None):
-        """Get scaled button size with user preference (individual or global)."""
+        """Get scaled button size with custom width/height per button type."""
         scale = self.get_scale_factor()
         if control_name:
             user_scale = self.settings.get_individual_button_scale(control_name)
         else:
             user_scale = self.settings.get_button_scale()
-        base_size = 80
-        size = int(base_size * scale * user_scale)
-        return (size, size)
+        
+        # Define custom width and height for each button type
+        button_dims = {
+            'left': (100, 100),
+            'right': (100, 100),
+            'atk1': (110, 80),
+            'atk2': (110, 80),
+            'jump': (110, 80),
+            'dodge': (110, 80),  # Dash button slightly larger
+        }
+        
+        # Get base dimensions for this button, default to square if not defined
+        if control_name and control_name in button_dims:
+            base_width, base_height = button_dims[control_name]
+        else:
+            base_width = base_height = 100
+        
+        width = int(base_width * scale * user_scale)
+        height = int(base_height * scale * user_scale)
+        return (width, height)
     
     def get_button_opacity(self, control_name=None):
         """Get user-configured button opacity (individual or global)."""
@@ -79,12 +101,12 @@ class TouchControls(Widget):
         left_size = self.get_button_size('left')
         left_opacity = self.get_button_opacity('left')
         left_btn = Button(
-            text='<',
+            background_normal=os.path.join(self.assets_path, 'left move.png'),
+            background_down=os.path.join(self.assets_path, 'left move.png'),
             size_hint=(None, None),
             size=left_size,
             pos=(left_pos['x'] * Window.width, left_pos['y'] * Window.height),
-            background_color=(*COLORS['p1_movement'][:3], left_opacity),
-            font_size=self.get_font_size(32, 'left')
+            opacity=left_opacity
         )
         left_btn.name = 'left'
         left_btn.bind(
@@ -99,12 +121,12 @@ class TouchControls(Widget):
         right_size = self.get_button_size('right')
         right_opacity = self.get_button_opacity('right')
         right_btn = Button(
-            text='>',
+            background_normal=os.path.join(self.assets_path, 'Right move.png'),
+            background_down=os.path.join(self.assets_path, 'Right move.png'),
             size_hint=(None, None),
             size=right_size,
             pos=(right_pos['x'] * Window.width, right_pos['y'] * Window.height),
-            background_color=(*COLORS['p1_movement'][:3], right_opacity),
-            font_size=self.get_font_size(32, 'right')
+            opacity=right_opacity
         )
         right_btn.name = 'right'
         right_btn.bind(
@@ -123,12 +145,12 @@ class TouchControls(Widget):
         atk1_size = self.get_button_size('atk1')
         atk1_opacity = self.get_button_opacity('atk1')
         atk1_btn = Button(
-            text='A1',
+            background_normal=os.path.join(self.assets_path, 'A1.png'),
+            background_down=os.path.join(self.assets_path, 'A1.png'),
             size_hint=(None, None),
             size=atk1_size,
             pos=(atk1_pos['x'] * Window.width, atk1_pos['y'] * Window.height),
-            background_color=(*COLORS['p1_attack'][:3], atk1_opacity),
-            font_size=self.get_font_size(24, 'atk1')
+            opacity=atk1_opacity
         )
         atk1_btn.name = 'atk1'
         atk1_btn.bind(
@@ -139,16 +161,16 @@ class TouchControls(Widget):
         self.controls.append(atk1_btn)
         
         # Attack 2
-        atk2_pos = controls.get('atk2', {'x': 0.88, 'y': 0.03})
+        atk2_pos = controls.get('atk2', {'x': 0.88, 'y': 0.15})
         atk2_size = self.get_button_size('atk2')
         atk2_opacity = self.get_button_opacity('atk2')
         atk2_btn = Button(
-            text='A2',
+            background_normal=os.path.join(self.assets_path, 'A2.png'),
+            background_down=os.path.join(self.assets_path, 'A2.png'),
             size_hint=(None, None),
             size=atk2_size,
             pos=(atk2_pos['x'] * Window.width, atk2_pos['y'] * Window.height),
-            background_color=(*COLORS['p1_attack'][:3], atk2_opacity),
-            font_size=self.get_font_size(24, 'atk2')
+            opacity=atk2_opacity
         )
         atk2_btn.name = 'atk2'
         atk2_btn.bind(
@@ -163,12 +185,12 @@ class TouchControls(Widget):
         jump_size = self.get_button_size('jump')
         jump_opacity = self.get_button_opacity('jump')
         jump_btn = Button(
-            text='^',
+            background_normal=os.path.join(self.assets_path, 'Jump.png'),
+            background_down=os.path.join(self.assets_path, 'Jump.png'),
             size_hint=(None, None),
             size=jump_size,
             pos=(jump_pos['x'] * Window.width, jump_pos['y'] * Window.height),
-            background_color=(*COLORS['jump'][:3], jump_opacity),
-            font_size=self.get_font_size(32, 'jump')
+            opacity=jump_opacity
         )
         jump_btn.name = 'jump'
         jump_btn.bind(on_press=lambda btn: self._on_jump())
@@ -176,16 +198,16 @@ class TouchControls(Widget):
         self.controls.append(jump_btn)
         
         # Dash button
-        dodge_pos = controls.get('dodge', {'x': 0.78, 'y': 0.15})
+        dodge_pos = controls.get('dodge', {'x': 0.78, 'y': 0.03})
         dodge_size = self.get_button_size('dodge')
         dodge_opacity = self.get_button_opacity('dodge')
         dash_btn = Button(
-            text='DASH',
+            background_normal=os.path.join(self.assets_path, 'Dash.png'),
+            background_down=os.path.join(self.assets_path, 'Dash.png'),
             size_hint=(None, None),
             size=dodge_size,
             pos=(dodge_pos['x'] * Window.width, dodge_pos['y'] * Window.height),
-            background_color=(0.6, 0.3, 0.7, dodge_opacity),
-            font_size=self.get_font_size(16, 'dodge')
+            opacity=dodge_opacity
         )
         dash_btn.name = 'dodge'
         dash_btn.bind(on_press=lambda btn: self._on_dodge())
@@ -203,15 +225,6 @@ class TouchControls(Widget):
         
         controls = self.settings.get_controls()
         
-        font_sizes = {
-            'left': 32,
-            'right': 32,
-            'atk1': 24,
-            'atk2': 24,
-            'jump': 32,
-            'dodge': 16,
-        }
-        
         for btn in self.controls:
             control_name = btn.name
             
@@ -220,17 +233,11 @@ class TouchControls(Widget):
             btn_opacity = self.get_button_opacity(control_name)
             
             btn.size = btn_size
+            btn.opacity = btn_opacity
             
             if control_name in controls and isinstance(controls[control_name], dict):
                 pos_data = controls[control_name]
                 btn.pos = (pos_data['x'] * Window.width, pos_data['y'] * Window.height)
-            
-            if control_name in font_sizes:
-                btn.font_size = self.get_font_size(font_sizes[control_name], control_name)
-            
-            # Update opacity (keep original color RGB, just change alpha)
-            color = btn.background_color
-            btn.background_color = (color[0], color[1], color[2], btn_opacity)
     
     def _on_move_press(self, direction, pressed):
         """Handle movement button press/release."""

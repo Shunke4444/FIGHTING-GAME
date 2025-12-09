@@ -4,6 +4,8 @@ from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Color, Rectangle
 from kivy.core.window import Window
+from kivy.core.image import Image as CoreImage
+from kivy.clock import Clock
 
 from screens.base_screen import BaseScreen
 from config import SCREENS
@@ -26,10 +28,10 @@ class DifficultySelectScreen(BaseScreen):
         self.pixelmax_font = os.path.join(base_path, 'assets/fonts/Pixelmax-Regular.otf')
         self.pixelade_font = os.path.join(base_path, 'assets/fonts/PIXELADE.TTF')
 
-        # Background
-        with self.canvas.before:
-            Color(0.1, 0.1, 0.15, 1)
-            self.bg_rect = Rectangle(pos=self.pos, size=self.size)
+        # Load parallax background
+        self._load_background()
+        
+        # Bind to size and position changes
         self.bind(size=self._update_bg, pos=self._update_bg)
 
         # Layout
@@ -66,9 +68,45 @@ class DifficultySelectScreen(BaseScreen):
         # Listen to window resize
         Window.bind(on_resize=self._resize_ui)
 
+    def _load_background(self):
+        """Load CloudyForest parallax layers."""
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        self.bg_layers = []
+
+        for i in range(1, 6):
+            bg_path = os.path.join(base_path, f'assets/images/backgrounds/CloudyForest/bg-2_LAYER-{i}.png')
+            try:
+                tex = CoreImage(bg_path).texture
+                self.bg_layers.append(tex)
+            except Exception as e:
+                print(f"Error loading background layer {i}: {e}")
+
+        self._build_parallax_canvas()
+
+    def _build_parallax_canvas(self):
+        """Create rectangles for each layer stacked."""
+        self.canvas.before.clear()
+        with self.canvas.before:
+            Color(1, 1, 1, 1)
+            
+            # Draw in reverse order so layer 5 (foreground) is on top
+            if self.bg_layers:
+                for i in range(len(self.bg_layers) - 1, -1, -1):
+                    tex = self.bg_layers[i]
+                    Rectangle(
+                        texture=tex,
+                        pos=(0, 0),
+                        size=self.size
+                    )
+            else:
+                # Fallback to solid color if no layers loaded
+                Color(0.1, 0.1, 0.15, 1)
+                Rectangle(pos=(0, 0), size=self.size)
+
     def _update_bg(self, *args):
-        self.bg_rect.pos = self.pos
-        self.bg_rect.size = self.size
+        """Update background on resize."""
+        self._build_parallax_canvas()
 
     def _resize_ui(self, *args):
         """Rescale UI dynamically on window resize."""
@@ -120,6 +158,13 @@ class DifficultySelectScreen(BaseScreen):
 
     def on_difficulty_select(self, instance):
         difficulty = instance.difficulty
+        
+        # Fade out start screen music before switching
+        if hasattr(self.app, 'screens') and SCREENS['START'] in self.app.screens:
+            start_screen = self.app.screens[SCREENS['START']]
+            if hasattr(start_screen, 'fade_out_music'):
+                start_screen.fade_out_music(duration=0.5)
+        
         if hasattr(self.app, 'screens') and SCREENS['GAME'] in self.app.screens:
             game = self.app.screens[SCREENS['GAME']]
             game.set_difficulty(difficulty)
