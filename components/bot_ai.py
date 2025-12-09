@@ -38,15 +38,17 @@ class BotAI:
             self.dodge_chance = 0.4
             self.aggression = 0.6
         elif self.difficulty == 'hard':
+            # Faster reactions and higher aggression; less spammable dodging
             self.reaction_time = 3
-            self.attack_chance = 0.8
-            self.dodge_chance = 0.6
-            self.aggression = 0.8
+            self.attack_chance = 0.85
+            self.dodge_chance = 0.35
+            self.aggression = 0.9
         else:  # nightmare
+            # Very fast, highly aggressive, but don't dodge excessively — prefer punishes
             self.reaction_time = 1  # Nearly instant reactions
-            self.attack_chance = 0.95
-            self.dodge_chance = 0.85
-            self.aggression = 0.98
+            self.attack_chance = 0.98
+            self.dodge_chance = 0.25
+            self.aggression = 0.995
     
     def _get_decision_interval(self):
         """Get decision interval based on difficulty."""
@@ -112,19 +114,37 @@ class BotAI:
     def _close_range_decision(self, target):
         """Decision making when close to target."""
         roll = random.random()
-        
-        # If target is attacking, maybe dodge
-        if target.attacking and roll < self.dodge_chance:
-            self._dodge(target)
-            return
-        
-        # Attack chance
+
+        # If target is in attack recovery (can't immediately retaliate), prioritize punishing
+        if getattr(target, 'attack_cooldown', 0) > 0:
+            punish_chance = min(1.0, self.attack_chance + 0.25)
+            if roll < punish_chance:
+                # Prefer stronger or moving attacks when punishing
+                if random.random() < 0.35:
+                    # Special moving attack
+                    self._do_attack(target)
+                else:
+                    self._do_attack(target)
+                return
+
+        # If target is actively attacking, prefer to capitalize on openings rather than spam dodges
+        if target.attacking:
+            # Less likely to dodge on harder difficulties; try to time a short back-off or small approach
+            if roll < max(0.15, self.dodge_chance * 0.5):
+                self._dodge(target)
+                return
+            # Slight chance to attempt a short punish after a tiny delay
+            if roll < self.attack_chance:
+                # Wait a couple frames to time a counter (give the engine a short pause)
+                self.action_timer = random.randint(2, 6)
+                self._do_attack(target)
+                return
+
+        # Default behavior: attack, back off, or jump-attack
         if roll < self.attack_chance:
             self._do_attack(target)
-        # Sometimes back off
         elif roll < self.attack_chance + 0.2:
             self._back_off(target)
-        # Sometimes jump attack
         elif roll < self.attack_chance + 0.3:
             self.fighter.do_jump()
             self._do_attack(target)
@@ -185,16 +205,16 @@ class BotAI:
     
     def _dodge(self, target):
         """Dodge away from target's attack."""
-        # Use the dash dodge if available
-        if self.fighter.dodge_cooldown == 0 and random.random() < 0.6:
+        # Use the dash dodge if available. Use configured dodge_chance so difficulty controls it.
+        if self.fighter.dodge_cooldown == 0 and random.random() < self.dodge_chance:
             # Face away from target to dash away
             self.fighter.flip = self.fighter.x < target.x
             self.fighter.do_dodge()
         else:
-            # Fall back to backing off
+            # Fall back to backing off; on higher difficulties this will be rarer
             self._back_off(target)
-            # Maybe jump while dodging
-            if random.random() < 0.4:
+            # Maybe jump while dodging/backing
+            if random.random() < 0.35:
                 self.fighter.do_jump()
     
     def _do_attack(self, target=None):
