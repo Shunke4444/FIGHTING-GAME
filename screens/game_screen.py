@@ -425,14 +425,15 @@ class GameScreen(BaseScreen):
         )
         self.add_widget(self.timer_label)
         
-        # Create pause button below timer
+        # Create pause button with UI image (below timer)
+        assets_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'images', 'ui', 'fighting_screen')
         self.pause_btn = Button(
-            text='||',
+            background_normal=os.path.join(assets_path, 'Pause.png'),
+            background_down=os.path.join(assets_path, 'Pause.png'),
             size_hint=(None, None),
-            size=(60, 60),
-            pos=(Window.width // 2 - 30, Window.height - 105),
-            background_color=(0.5, 0.5, 0.5, 0.7),
-            font_size=28
+            size=(110, 90),
+            pos=(Window.width // 2 - 80, Window.height - 180),
+            opacity=0.9
         )
         self.pause_btn.bind(on_press=self.on_pause)
         self.add_widget(self.pause_btn)
@@ -459,8 +460,8 @@ class GameScreen(BaseScreen):
         # Apply saved audio settings
         sfx_volume = self.settings.get_sfx_volume()
         self.apply_sfx_volume(sfx_volume)
-        # Start background music
-        self.play_music()
+        # Start background music with fade in
+        self.fade_in_music(duration=0.5)
     
     def on_leave(self):
         """Stop the game loop when leaving."""
@@ -492,7 +493,7 @@ class GameScreen(BaseScreen):
         
         # Update timer and pause button positions for dynamic scaling
         self.timer_label.pos = (Window.width // 2 - 40, Window.height - 50)
-        self.pause_btn.pos = (Window.width // 2 - 30, Window.height - 105)
+        self.pause_btn.pos = (Window.width // 2 - 56, Window.height - 120)
         
         # Update timer display (just seconds)
         match_time = self.game_widget.match_time
@@ -603,25 +604,18 @@ class GameScreen(BaseScreen):
     def _load_background_music(self):
         """Load the background music."""
         base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        # Prefer a packaged WAV/OGG file where available; fall back to MP3
-        wav_path = os.path.join(base_path, 'assets', 'images', 'sound_effects',
-                                'background_music', 'Limbus_Company_Middle_Finger_Toujou.wav')
+        # Use "The Heros Rising" music
         mp3_path = os.path.join(base_path, 'assets', 'images', 'sound_effects',
-                                'background_music', 'Limbus Company - Middle Finger Toujou.mp3')
+                                'background_music', 'The Heros Rising  (16-Bit Arcade No Copyright Music).mp3')
 
-        chosen_path = None
-        if os.path.exists(wav_path):
-            chosen_path = wav_path
-        elif os.path.exists(mp3_path):
-            chosen_path = mp3_path
-
-        if chosen_path:
-            self.bg_music = SoundLoader.load(chosen_path)
+        if os.path.exists(mp3_path):
+            self.bg_music = SoundLoader.load(mp3_path)
             if self.bg_music:
                 self.bg_music.loop = True
                 # Use saved volume setting
                 volume = self.settings.get_music_volume()
                 self.bg_music.volume = volume
+                self.music_original_volume = volume
                 self.music_original_volume = volume
     
     def play_music(self):
@@ -632,6 +626,49 @@ class GameScreen(BaseScreen):
             self.bg_music.volume = volume
             self.music_original_volume = volume
             self.bg_music.play()
+    
+    def fade_in_music(self, duration=0.5):
+        """Fade in music over specified duration."""
+        if not self.bg_music:
+            return
+        
+        target_volume = self.settings.get_music_volume()
+        self.music_original_volume = target_volume
+        self.bg_music.volume = 0.0
+        
+        if self.bg_music.state != 'play':
+            self.bg_music.play()
+        
+        start_time = Clock.get_time()
+        
+        def fade_step(dt):
+            elapsed = Clock.get_time() - start_time
+            progress = min(elapsed / duration, 1.0)
+            self.bg_music.volume = target_volume * progress
+            
+            if progress >= 1.0:
+                return False  # Stop scheduling
+        
+        Clock.schedule_interval(fade_step, 0.01)
+    
+    def fade_out_music(self, duration=0.5):
+        """Fade out music over specified duration."""
+        if not self.bg_music or self.bg_music.state != 'play':
+            return
+        
+        original_volume = self.bg_music.volume
+        start_time = Clock.get_time()
+        
+        def fade_step(dt):
+            elapsed = Clock.get_time() - start_time
+            progress = min(elapsed / duration, 1.0)
+            self.bg_music.volume = original_volume * (1.0 - progress)
+            
+            if progress >= 1.0:
+                self.bg_music.stop()
+                return False  # Stop scheduling
+        
+        Clock.schedule_interval(fade_step, 0.01)
     
     def pause_music(self):
         """Pause background music."""
@@ -665,7 +702,7 @@ class GameScreen(BaseScreen):
     
     def on_window_resize(self, window, size):
         """Handle window resize."""
-        self.pause_btn.pos = (size[0] // 2 - 30, size[1] - 70)
+        self.pause_btn.pos = (size[0] // 2 - 80, size[1] - 70)
     
     def reset_game(self):
         """Reset the game."""
