@@ -9,11 +9,13 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.graphics import Rectangle, Color
 from kivy.core.image import Image as CoreImage
+from kivy.core.audio import SoundLoader
 from kivy.animation import Animation
 from kivy.clock import Clock
 
 from screens.base_screen import BaseScreen
 from config import SCREENS
+from utils.settings import SettingsManager
 
 
 class StartScreen(BaseScreen):
@@ -21,6 +23,13 @@ class StartScreen(BaseScreen):
 
     def __init__(self, app, **kwargs):
         super().__init__(app, **kwargs)
+
+        # Get settings for audio
+        self.settings = SettingsManager.get_instance()
+        
+        # Load and play background music
+        self.bg_music = None
+        self._load_background_music()
 
         # Bind resize events
         self.bind(size=self._on_size_change, pos=self._on_size_change)
@@ -175,8 +184,55 @@ class StartScreen(BaseScreen):
         anim = Animation(font_size=70, duration=0.6) + Animation(font_size=64, duration=0.6)
         anim.repeat = True
         anim.start(self.title_label)
+        
+        # Play music
+        self.play_music()
 
     def on_leave(self):
         """Stop animations when leaving screen."""
         Animation.cancel_all(self.start_label)
         Animation.cancel_all(self.title_label)
+    
+    def _load_background_music(self):
+        """Load the Travelers Quest music for the start screen."""
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # Use "Travelers Quest" music
+        mp3_path = os.path.join(base_path, 'assets', 'images', 'sound_effects',
+                                'background_music', 'Travelers Quest  (16-Bit Arcade No Copyright Music).mp3')
+
+        if os.path.exists(mp3_path):
+            self.bg_music = SoundLoader.load(mp3_path)
+            if self.bg_music:
+                self.bg_music.loop = True
+                # Use saved volume setting
+                volume = self.settings.get_music_volume()
+                self.bg_music.volume = volume
+    
+    def play_music(self):
+        """Start playing background music."""
+        if self.bg_music and self.bg_music.state != 'play':
+            self.bg_music.play()
+    
+    def stop_music(self):
+        """Stop background music."""
+        if self.bg_music:
+            self.bg_music.stop()
+    
+    def fade_out_music(self, duration=0.5):
+        """Fade out music over specified duration."""
+        if not self.bg_music or self.bg_music.state != 'play':
+            return
+        
+        original_volume = self.bg_music.volume
+        start_time = Clock.get_time()
+        
+        def fade_step(dt):
+            elapsed = Clock.get_time() - start_time
+            progress = min(elapsed / duration, 1.0)
+            self.bg_music.volume = original_volume * (1.0 - progress)
+            
+            if progress >= 1.0:
+                self.bg_music.stop()
+                return False  # Stop scheduling
+        
+        Clock.schedule_interval(fade_step, 0.01)
